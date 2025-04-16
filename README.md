@@ -4,9 +4,12 @@ Evolutionary game theory (EGT) model implemented with the Hybrid Automata Librar
 ## Installation
 
 ### Repository
-By itself: `git clone --recursive git@github.com:sydleither/EGT_HAL.git`
+By itself:
+- `git clone --recursive git@github.com:sydleither/EGT_HAL.git`
 
-As a submodule: `git submodule add https://github.com/sydleither/EGT_HAL`
+As a submodule:
+- `git submodule add https://github.com/sydleither/EGT_HAL`
+- `git submodule update --init --recursive`
 
 ### Java
 Java version: 21.0.2

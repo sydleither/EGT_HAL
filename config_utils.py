@@ -110,7 +110,7 @@ def write_config(
 
     path = f"{data_dir}/{exp_dir}/{config_name}"
     if not os.path.exists(f"{path}/{seed}"):
-        os.makedirs(path)
+        os.makedirs(f"{path}/{seed}")
     with open(f"{path}/{config_name}.json", "w", encoding="UTF-8") as f:
         json.dump(config, f, indent=4)
 
