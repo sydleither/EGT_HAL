@@ -103,7 +103,7 @@ public class SpatialEGT2D {
 
             for (int tick = 0; tick <= numTicks; tick++) {
                 if (writeModel) {
-                    if ((tick % writeModelFrequency == 0) && (tick > 0)) {
+                    if ((tick % writeModelFrequency == 0)) {
                         List<List<Integer>> coordLists = GetModelCoords(model);
                         List<Integer> cellTypes = coordLists.get(0);
                         List<Integer> xCoords = coordLists.get(1);

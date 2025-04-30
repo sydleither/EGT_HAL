@@ -139,7 +139,7 @@ def latin_hybercube_sample(num_samples, param_names, lower_bounds, upper_bounds,
     unscaled_sample = sampler.random(n=num_samples)
     sample = qmc.scale(unscaled_sample, lower_bounds, upper_bounds).tolist()
     sampled_params = [
-        {param_names[i]: round(s[i]) if ints[i] else round(s[i], 2) for i in range(len(s))}
+        {param_names[i]: round(s[i]) if ints[i] else round(s[i], 3) for i in range(len(s))}
         for s in sample
     ]
     return sampled_params
