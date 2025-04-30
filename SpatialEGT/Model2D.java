@@ -7,7 +7,6 @@ import HAL.Util;
 
 public class Model2D extends AgentGrid2D<Cell2D> {
     Rand rng;
-    int neighborhood;
     double deathRate, drugGrowthReduction, adaptiveTreatmentThreshold;
     boolean adaptiveTherapy;
     double[][] payoff;
@@ -16,19 +15,19 @@ public class Model2D extends AgentGrid2D<Cell2D> {
     int drugConcentration;
     int startingPop;
 
-    public Model2D(int x, int y, Rand rng, int neighborhood, double deathRate, double drugGrowthReduction,
-                   boolean adaptiveTherapy, double adaptiveTreatmentThreshold, double[][] payoff) {
+    public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius,
+                   double deathRate, double drugGrowthReduction, boolean adaptiveTherapy,
+                   double adaptiveTreatmentThreshold, double[][] payoff) {
         super(x, y, Cell2D.class);
         this.rng = rng;
-        this.neighborhood = neighborhood;
         this.deathRate = deathRate;
         this.drugGrowthReduction = drugGrowthReduction;
         this.adaptiveTherapy = adaptiveTherapy;
         this.adaptiveTreatmentThreshold = adaptiveTreatmentThreshold;
         this.payoff = payoff;
         this.drugConcentration = 1;
-        this.gameHood = Util.CircleHood(false, neighborhood);
-        this.divHood = Util.VonNeumannHood(false);
+        this.gameHood = Util.CircleHood(false, gameHoodRadius);
+        this.divHood = Util.CircleHood(false, divHoodRadius);
     }
 
     public void InitTumorRandom(int numCells, double proportionResistant) {

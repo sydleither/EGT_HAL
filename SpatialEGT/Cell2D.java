@@ -23,7 +23,7 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
         double total_payoff = 0;
         int neighbors = MapOccupiedHood(G.gameHood);
         if (neighbors == 0) {
-            return G.payoff[this.type][this.type];
+            return 0.001;
         }
         for (int i = 0; i < neighbors; i++) {
             Cell2D neighborCell = G.GetAgent(G.gameHood[i]);
