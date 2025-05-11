@@ -38,7 +38,7 @@ public class SpatialEGT {
             visualizationFrequency = Integer.parseInt(args[5]);
         }
         else {
-            System.out.println("Please provide the following arguments: experiment directory, experiment name, dimension, replicate/seed, and (optional) visualization frequency.");
+            System.out.println("Please provide the following arguments: data directory, experiment directory, experiment name, dimension, replicate/seed, and (optional) visualization frequency.");
         }
         String saveLoc = dataDir+"/"+expDir+"/"+expName+"/"+rep+"/"+dimension;
         
@@ -49,6 +49,7 @@ public class SpatialEGT {
             params = mapper.readValue(Paths.get(dataDir+"/"+expDir+"/"+expName+"/"+expName+".json").toFile(), Map.class);
         }
         catch (Exception e) {
+            e.printStackTrace(System.out);
             return;
         }
 
