@@ -66,19 +66,19 @@ public class SpatialEGT2D {
         // initialize with specified models
         HashMap<String,Model2D> models = new HashMap<String,Model2D>();
         if (runNull == 1) {
-            Model2D nullModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, 0.0, false, 0.0, payoff);
+            Model2D nullModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, 0.0, false, 0.0, 0, payoff);
             models.put("nodrug", nullModel);
         }
         if (runGradient == 1) {
-            Model2D gradientModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, false, 0.0, payoff);
+            Model2D gradientModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, false, 0.0, 5, payoff);
             models.put("gradient", gradientModel);
         }
         if (runContinuous == 1) {
-            Model2D continuousModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, false, 0.0, payoff);
+            Model2D continuousModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, false, 0.0, 0, payoff);
             models.put("continuous", continuousModel);
         }
         if (runAdaptive == 1) {
-            Model2D adaptiveModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, true, adaptiveTreatmentThreshold, payoff);
+            Model2D adaptiveModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, true, adaptiveTreatmentThreshold, 0, payoff);
             models.put("adaptive", adaptiveModel);
         }
 
