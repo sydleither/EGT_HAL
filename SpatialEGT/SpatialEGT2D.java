@@ -30,6 +30,14 @@ public class SpatialEGT2D {
         return returnList;
     }
 
+    public static List<Double> GetDrugGradient(Model2D model) {
+        List<Double> drug = new ArrayList<Double>();
+        for (Cell2D cell: model) {
+            drug.add(cell.GetDrugGrowthReduction());
+        }
+        return drug;
+    }
+
     public SpatialEGT2D(String saveLoc, Map<String, Object> params, long seed, int visualizationFrequency) {
         // turn parameters json into variables
         int runNull = (int) params.get("null");
@@ -88,9 +96,14 @@ public class SpatialEGT2D {
         FileIO modelOut = null;
         if (writeModel) {
             modelOut = new FileIO(saveLoc+"coords.csv", "w");
-            modelOut.Write("model,time,type,x,y\n");
+            if (runGradient == 1) {
+                modelOut.Write("model,time,type,x,y,drug\n");
+            }
+            else {
+                modelOut.Write("model,time,type,x,y\n");
+            }
         }
-        
+
         // run models
         for (Map.Entry<String,Model2D> modelEntry : models.entrySet()) {
             String modelName = modelEntry.getKey();
@@ -113,8 +126,16 @@ public class SpatialEGT2D {
                         List<Integer> cellTypes = coordLists.get(0);
                         List<Integer> xCoords = coordLists.get(1);
                         List<Integer> yCoords = coordLists.get(2);
-                        for (int i = 0; i < cellTypes.size(); i++) {
-                            modelOut.Write(modelName+","+tick+","+cellTypes.get(i)+","+xCoords.get(i)+","+yCoords.get(i)+"\n");
+                        if (modelName == "gradient") {
+                            List<Double> drugs = GetDrugGradient(model);
+                            for (int i = 0; i < cellTypes.size(); i++) {
+                                modelOut.Write(modelName+","+tick+","+cellTypes.get(i)+","+xCoords.get(i)+","+yCoords.get(i)+","+drugs.get(i)+"\n");
+                            }
+                        }
+                        else {
+                            for (int i = 0; i < cellTypes.size(); i++) {
+                                modelOut.Write(modelName+","+tick+","+cellTypes.get(i)+","+xCoords.get(i)+","+yCoords.get(i)+"\n");
+                            }
                         }
                     }
                 }
