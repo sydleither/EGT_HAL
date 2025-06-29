@@ -35,6 +35,7 @@ public class SpatialEGT2D {
         int runNull = (int) params.get("null");
         int runContinuous = (int) params.get("continuous");
         int runAdaptive = (int) params.get("adaptive");
+        int runGradient = (int) params.get("gradient");
         int writeModelFrequency = (int) params.get("writeModelFrequency");
         int numTicks = (int) params.get("numTicks");
         int x = (int) params.get("x");
@@ -59,6 +60,10 @@ public class SpatialEGT2D {
         if (runNull == 1) {
             Model2D nullModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, 0.0, false, 0.0, payoff);
             models.put("nodrug", nullModel);
+        }
+        if (runGradient == 1) {
+            Model2D gradientModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, false, 0.0, payoff);
+            models.put("gradient", gradientModel);
         }
         if (runContinuous == 1) {
             Model2D continuousModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, false, 0.0, payoff);

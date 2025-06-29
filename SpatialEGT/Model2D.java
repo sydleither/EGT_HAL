@@ -12,12 +12,12 @@ public class Model2D extends AgentGrid2D<Cell2D> {
     double[][] payoff;
     int[] divHood;
     int[] gameHood;
-    int drugConcentration;
+    int drugConcentration, gradients;
     int startingPop;
 
     public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius,
                    double deathRate, double drugGrowthReduction, boolean adaptiveTherapy,
-                   double adaptiveTreatmentThreshold, double[][] payoff) {
+                   double adaptiveTreatmentThreshold, int gradients, double[][] payoff) {
         super(x, y, Cell2D.class);
         this.rng = rng;
         this.deathRate = deathRate;
@@ -26,6 +26,7 @@ public class Model2D extends AgentGrid2D<Cell2D> {
         this.adaptiveTreatmentThreshold = adaptiveTreatmentThreshold;
         this.payoff = payoff;
         this.drugConcentration = 1;
+        this.gradients = gradients;
         this.gameHood = Util.CircleHood(false, gameHoodRadius);
         this.divHood = Util.CircleHood(false, divHoodRadius);
     }

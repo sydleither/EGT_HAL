@@ -32,11 +32,26 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
         return total_payoff/neighbors;
     }
 
+    public double GetDrugGrowthReduction() {
+        if (G.gradients == 0) {
+            return G.drugGrowthReduction;
+        }
+        else {
+            int x = this.Xsq();
+            for (int g = 0; g < G.gradients; g++) {
+                if (x >= (g*(G.xDim/G.gradients)) && x < ((g+1)*(G.xDim/G.gradients))) {
+                    return G.drugGrowthReduction * ((g+1) / G.gradients);
+                }
+            }
+        }
+        return 0.0;
+    }
+
     public void CellStep() {
         //divison + drug effects
         double divRate = this.GetDivRate();
         if (G.drugConcentration > 0.0 && this.type == 0) {
-            divRate = divRate * (1 - G.drugGrowthReduction);
+            divRate = divRate * (1 - GetDrugGrowthReduction());
         }
         if (G.rng.Double() < divRate) {
             int options = MapEmptyHood(G.divHood);
