@@ -40,7 +40,7 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
             int x = this.Xsq();
             for (int g = 0; g < G.gradients; g++) {
                 if (x >= (g*(G.xDim/G.gradients)) && x < ((g+1)*(G.xDim/G.gradients))) {
-                    return G.drugGrowthReduction * ((g+1) / G.gradients);
+                    return G.drugGrowthReduction * ((g+1) / (double) G.gradients);
                 }
             }
         }
