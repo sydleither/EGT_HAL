@@ -30,20 +30,43 @@ public class SpatialEGT2D {
         return returnList;
     }
 
-    public static List<Double> GetDrugGradient(Model2D model) {
-        List<Double> drug = new ArrayList<Double>();
-        for (Cell2D cell: model) {
-            drug.add(cell.GetDrugGrowthReduction());
+    public static List<double[][]> extractPayoffMatrices(Map<String, Object> params) {
+        Pattern matrixKeyPattern = Pattern.compile("([a-dA-D])(?:([0-9]+))?");
+        Map<Integer, Map<String, Double>> groupedMatrix = new TreeMap<>();
+
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            Matcher matcher = matrixKeyPattern.matcher(entry.getKey());
+            if (matcher.matches() && entry.getValue() instanceof Number) {
+                String label = matcher.group(1).toLowerCase();
+                String suffix = matcher.group(2);
+                int index = (suffix != null) ? Integer.parseInt(suffix) : 0;
+                groupedMatrix
+                    .computeIfAbsent(index, k -> new HashMap<>())
+                    .put(label, ((Number) entry.getValue()).doubleValue());
+            }
         }
-        return drug;
+
+        List<double[][]> payoffMatrices = new ArrayList<>();
+        for (Map.Entry<Integer, Map<String, Double>> entry : groupedMatrix.entrySet()) {
+            Map<String, Double> values = entry.getValue();
+            for (String key : List.of("a", "b", "c", "d")) {
+                if (!values.containsKey(key)) {
+                    throw new IllegalArgumentException("Missing matrix value for key '" + key + "' in group " + entry.getKey());
+                }
+            }
+            double[][] matrix = new double[2][2];
+            matrix[0][0] = values.get("a");
+            matrix[0][1] = values.get("b");
+            matrix[1][0] = values.get("c");
+            matrix[1][1] = values.get("d");
+            payoffMatrices.add(matrix);
+        }
+
+        return payoffMatrices;
     }
 
     public SpatialEGT2D(String saveLoc, Map<String, Object> params, long seed, int visualizationFrequency) {
         // turn parameters json into variables
-        int runNull = (int) params.get("null");
-        int runContinuous = (int) params.get("continuous");
-        int runAdaptive = (int) params.get("adaptive");
-        int runGradient = (int) params.get("gradient");
         int writeModelFrequency = (int) params.get("writeModelFrequency");
         int numTicks = (int) params.get("numTicks");
         int x = (int) params.get("x");
@@ -51,112 +74,69 @@ public class SpatialEGT2D {
         int interactionRadius = (int) params.get("interactionRadius");
         int reproductionRadius = (int) params.get("reproductionRadius");
         double deathRate = (double) params.get("deathRate");
-        double drugGrowthReduction = (double) params.get("drugGrowthReduction");
         int numCells = (int) params.get("numCells");
         double proportionResistant = (double) params.get("proportionResistant");
-        double adaptiveTreatmentThreshold = (double) params.get("adaptiveTreatmentThreshold");
-        int initialTumor = (int) params.get("initialTumor");
-        int toyGap = (int) params.get("toyGap");
-        double[][] payoff = new double[2][2];
-        payoff[0][0] = (double) params.get("A");
-        payoff[0][1] = (double) params.get("B");
-        payoff[1][0] = (double) params.get("C");
-        payoff[1][1] = (double) params.get("D");
+        List<double[][]> payoffMatrices = extractPayoffMatrices(params);
 
-        // initialize with specified models
-        HashMap<String,Model2D> models = new HashMap<String,Model2D>();
-        if (runNull == 1) {
-            Model2D nullModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, 0.0, false, 0.0, 0, payoff);
-            models.put("nodrug", nullModel);
-        }
-        if (runGradient == 1) {
-            Model2D gradientModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, false, 0.0, 5, payoff);
-            models.put("gradient", gradientModel);
-        }
-        if (runContinuous == 1) {
-            Model2D continuousModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, false, 0.0, 0, payoff);
-            models.put("continuous", continuousModel);
-        }
-        if (runAdaptive == 1) {
-            Model2D adaptiveModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, true, adaptiveTreatmentThreshold, 0, payoff);
-            models.put("adaptive", adaptiveModel);
+        for (int i = 0; i < payoffMatrices.size(); i++) {
+            double[][] matrix = payoffMatrices.get(i);
+            System.out.printf("Matrix %d:\n", i);
+            System.out.printf("[[%f, %f],\n [%f, %f]]\n\n",
+                matrix[0][0], matrix[0][1],
+                matrix[1][0], matrix[1][1]);
         }
 
-        // check what to run and initialize output
-        boolean writeModel = writeModelFrequency != 0;
-        boolean visualize = visualizationFrequency != 0;
+        // // initialize model
+        // Model2D model = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, 0.0, false, 0.0, 0, payoff);
 
-        GridWindow win = null;
-        GifMaker gifWin = null;
-        if (visualize) {
-            win = new GridWindow("SpatialEGT", x, y, 4);
-            gifWin = new GifMaker(saveLoc+"growth.gif", 0, false);
-            writeModel = false;
-        }
-        FileIO modelOut = null;
-        if (writeModel) {
-            modelOut = new FileIO(saveLoc+"coords.csv", "w");
-            if (runGradient == 1) {
-                modelOut.Write("model,time,type,x,y,drug\n");
-            }
-            else {
-                modelOut.Write("model,time,type,x,y\n");
-            }
-        }
+        // // check what to run and initialize output
+        // boolean writeModel = writeModelFrequency != 0;
+        // boolean visualize = visualizationFrequency != 0;
 
-        // run models
-        for (Map.Entry<String,Model2D> modelEntry : models.entrySet()) {
-            String modelName = modelEntry.getKey();
-            Model2D model = modelEntry.getValue();
-            if (initialTumor == 1)
-                model.InitTumorLinear(proportionResistant, toyGap);
-            else if (initialTumor == 2)
-                model.InitTumorConvex(numCells, proportionResistant);
-            else if (initialTumor == 3)
-                model.InitTumorConcave(numCells, proportionResistant);
-            else if (initialTumor == 4)
-                model.InitTumorCircle(proportionResistant, toyGap);
-            else
-                model.InitTumorRandom(numCells, proportionResistant);
+        // GridWindow win = null;
+        // GifMaker gifWin = null;
+        // if (visualize) {
+        //     win = new GridWindow("SpatialEGT", x, y, 4);
+        //     gifWin = new GifMaker(saveLoc+"growth.gif", 0, false);
+        //     writeModel = false;
+        // }
+        // FileIO modelOut = null;
+        // if (writeModel) {
+        //     modelOut = new FileIO(saveLoc+"coords.csv", "w");
+        //     modelOut.Write("time,type,x,y\n");
+        // }
 
-            for (int tick = 0; tick <= numTicks; tick++) {
-                if (writeModel) {
-                    if ((tick % writeModelFrequency == 0)) {
-                        List<List<Integer>> coordLists = GetModelCoords(model);
-                        List<Integer> cellTypes = coordLists.get(0);
-                        List<Integer> xCoords = coordLists.get(1);
-                        List<Integer> yCoords = coordLists.get(2);
-                        if (modelName == "gradient") {
-                            List<Double> drugs = GetDrugGradient(model);
-                            for (int i = 0; i < cellTypes.size(); i++) {
-                                modelOut.Write(modelName+","+tick+","+cellTypes.get(i)+","+xCoords.get(i)+","+yCoords.get(i)+","+drugs.get(i)+"\n");
-                            }
-                        }
-                        else {
-                            for (int i = 0; i < cellTypes.size(); i++) {
-                                modelOut.Write(modelName+","+tick+","+cellTypes.get(i)+","+xCoords.get(i)+","+yCoords.get(i)+"\n");
-                            }
-                        }
-                    }
-                }
-                if (visualize) {
-                    model.DrawModel(win, 0);
-                    if (tick % visualizationFrequency == 0) {
-                        win.ToPNG(saveLoc+modelName+tick+".png");
-                    }
-                    gifWin.AddFrame(win);
-                }
-                model.ModelStep();
-            }
-        }
+        // // run model
+        // model.InitTumorRandom(numCells, proportionResistant);
+        // for (int tick = 0; tick <= numTicks; tick++) {
+        //     if (writeModel) {
+        //         if ((tick % writeModelFrequency == 0)) {
+        //             List<List<Integer>> coordLists = GetModelCoords(model);
+        //             List<Integer> cellTypes = coordLists.get(0);
+        //             List<Integer> xCoords = coordLists.get(1);
+        //             List<Integer> yCoords = coordLists.get(2);
+        //             for (int i = 0; i < cellTypes.size(); i++) {
+        //                 modelOut.Write(tick+","+cellTypes.get(i)+","+xCoords.get(i)+","+yCoords.get(i)+"\n");
+        //             }
+        //         }
+        //     }
+        //     if (visualize) {
+        //         model.DrawModel(win, 0);
+        //         if (tick % visualizationFrequency == 0) {
+        //             win.ToPNG(saveLoc+modelName+tick+".png");
+        //         }
+        //         gifWin.AddFrame(win);
+        //     }
+        //     model.ModelStep();
+        // }
 
-        // close output files
-        if (visualize) {
-            win.Close();
-            gifWin.Close();
-        }
-        if (writeModel) {
-            modelOut.Close();
-        }
+        // // close output files
+        // if (visualize) {
+        //     win.Close();
+        //     gifWin.Close();
+        // }
+        // if (writeModel) {
+        //     modelOut.Close();
+        // }
     }
 }

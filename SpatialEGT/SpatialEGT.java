@@ -41,7 +41,7 @@ public class SpatialEGT {
             System.out.println("Please provide the following arguments: data directory, experiment directory, experiment name, dimension, replicate/seed, and (optional) visualization frequency.");
         }
         String saveLoc = dataDir+"/"+expDir+"/"+expName+"/"+rep+"/"+dimension;
-        
+
         // read in json parameters
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> params;

@@ -33,10 +33,6 @@ def write_config(
     payoff,
     num_cells,
     proportion_r,
-    null=1,
-    adaptive=0,
-    continuous=0,
-    gradient=0,
     write_freq=250,
     x=125,
     y=125,
@@ -44,10 +40,6 @@ def write_config(
     interaction_radius=2,
     reproduction_radius=1,
     turnover=0.009,
-    drug_reduction=0.5,
-    at_threshold=0.5,
-    init_tumor=0,
-    toy_gap=5,
 ):
     """Write a config which parameterizes an EGT_HAL run
 
@@ -59,19 +51,12 @@ def write_config(
     :type config_name: str
     :param seed: the seed for the EGT_HAL run
     :type seed: int or str
-    :param payoff: the payoff matrix in format [a,b,c,d]
+    :param payoff: the payoff matrices in format [a,b,c,d] or [[a,b,c,d], [a,b,c,d], ...]
     :type payoff: list[float]
     :param num_cells: starting number of cells
     :type num_cells: int
     :param proportion_r: how many of the starting cells are resistant
     :type proportion_r: float
-    :param null: whether to run the null model, defaults to 1
-    :type null: int, optional
-    :param adaptive: whether to run the adaptive model, defaults to 0
-    :type adaptive: int, optional
-    :param continuous: whether to run the continuous drug model, defaults to 0
-    :type continuous: int, optional
-    :param write_freq: how often to save the model state to csv, defaults to 250
     :type write_freq: int, optional
     :param ticks: how many time steps to run the model for, defaults to 250
     :type ticks: int, optional
@@ -79,20 +64,8 @@ def write_config(
     :type radius: int, optional
     :param turnover: the probability each cell dies each time step, defaults to 0.009
     :type turnover: float, optional
-    :param drug_reduction: how much reproduction rate is reduced by drug, defaults to 0.5
-    :type drug_reduction: float, optional
-    :param at_threshold: adaptive therapy drug on threshold, defaults to 0.5
-    :type at_threshold: float, optional
-    :param init_tumor: initial tumor type (see SpatialEGT/SpatialEGT2D.java), defaults to 0
-    :type init_tumor: int, optional
-    :param toy_gap: how much space between tumor borders, defaults to 5
-    :type toy_gap: int, optional
     """
     config = {
-        "null": null,
-        "adaptive": adaptive,
-        "continuous": continuous,
-        "gradient": gradient,
         "writeModelFrequency": write_freq,
         "x": x,
         "y": y,
@@ -100,17 +73,23 @@ def write_config(
         "reproductionRadius": reproduction_radius,
         "numTicks": ticks,
         "deathRate": turnover,
-        "drugGrowthReduction": drug_reduction,
         "numCells": num_cells,
-        "proportionResistant": proportion_r,
-        "adaptiveTreatmentThreshold": at_threshold,
-        "initialTumor": init_tumor,
-        "toyGap": toy_gap,
-        "A": payoff[0],
-        "B": payoff[1],
-        "C": payoff[2],
-        "D": payoff[3],
+        "proportionResistant": proportion_r
     }
+
+    if type(payoff[0]) is not list:
+        payoff = [payoff]
+    for m,matrix in enumerate(payoff):
+        if m == 0:
+            config["A"] = matrix[0]
+            config["B"] = matrix[1]
+            config["C"] = matrix[2]
+            config["D"] = matrix[3]
+        else:
+            config[f"A{m}"] = matrix[0]
+            config[f"B{m}"] = matrix[1]
+            config[f"C{m}"] = matrix[2]
+            config[f"D{m}"] = matrix[3]
 
     path = f"{data_dir}/{exp_dir}/{config_name}"
     if not os.path.exists(f"{path}/{seed}"):
