@@ -19,7 +19,21 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
         }
     }
 
+    public double[][] GetPayoffMatrix() {
+        int x = this.Xsq();
+        int gradients = G.payoffMatrices.size();
+        for (int g = 0; g < gradients; g++) {
+            if (x >= (g*(G.xDim/gradients)) && x < ((g+1)*(G.xDim/gradients))) {
+                return G.payoffMatrices.get(g);
+            }
+        }
+        System.out.println("Error in GetPayoffMatrix");
+        System.exit(0);
+        return G.payoffMatrices.get(0);
+    }
+
     public double GetDivRate() {
+        double[][] payoffMatrix = GetPayoffMatrix();
         double total_payoff = 0;
         int neighbors = MapOccupiedHood(G.gameHood);
         if (neighbors == 0) {
@@ -27,32 +41,14 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
         }
         for (int i = 0; i < neighbors; i++) {
             Cell2D neighborCell = G.GetAgent(G.gameHood[i]);
-            total_payoff += G.payoff[this.type][neighborCell.type];
+            total_payoff += payoffMatrix[this.type][neighborCell.type];
         }
         return total_payoff/neighbors;
-    }
-
-    public double GetDrugGrowthReduction() {
-        if (G.gradients == 0) {
-            return G.drugGrowthReduction;
-        }
-        else {
-            int x = this.Xsq();
-            for (int g = 0; g < G.gradients; g++) {
-                if (x >= (g*(G.xDim/G.gradients)) && x < ((g+1)*(G.xDim/G.gradients))) {
-                    return G.drugGrowthReduction * ((g+1) / (double) G.gradients);
-                }
-            }
-        }
-        return 0.0;
     }
 
     public void CellStep() {
         //divison + drug effects
         double divRate = this.GetDivRate();
-        if (G.drugConcentration > 0.0 && this.type == 0) {
-            divRate = divRate * (1 - GetDrugGrowthReduction());
-        }
         if (G.rng.Double() < divRate) {
             int options = MapEmptyHood(G.divHood);
             if (options > 0) {

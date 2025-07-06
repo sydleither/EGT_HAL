@@ -1,5 +1,7 @@
 package SpatialEGT;
 
+import java.util.List;
+
 import HAL.GridsAndAgents.AgentGrid2D;
 import HAL.Gui.GridWindow;
 import HAL.Rand;
@@ -8,17 +10,16 @@ import HAL.Util;
 public class Model2D extends AgentGrid2D<Cell2D> {
     Rand rng;
     double deathRate;
-    double[][] payoff;
+    List<double[][]> payoffMatrices;
     int[] divHood;
     int[] gameHood;
     int startingPop;
 
-    public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius, double deathRate, double[][] payoff) {
+    public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius, double deathRate, List<double[][]> payoffMatrices) {
         super(x, y, Cell2D.class);
         this.rng = rng;
         this.deathRate = deathRate;
-        this.drugGrowthReduction = drugGrowthReduction;
-        this.payoff = payoff;
+        this.payoffMatrices = payoffMatrices;
         this.gameHood = Util.CircleHood(false, gameHoodRadius);
         this.divHood = Util.CircleHood(false, divHoodRadius);
     }

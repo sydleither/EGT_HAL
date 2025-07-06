@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.*;
 
 import HAL.Gui.GifMaker;
 import HAL.Gui.GridWindow;
@@ -78,65 +80,57 @@ public class SpatialEGT2D {
         double proportionResistant = (double) params.get("proportionResistant");
         List<double[][]> payoffMatrices = extractPayoffMatrices(params);
 
-        for (int i = 0; i < payoffMatrices.size(); i++) {
-            double[][] matrix = payoffMatrices.get(i);
-            System.out.printf("Matrix %d:\n", i);
-            System.out.printf("[[%f, %f],\n [%f, %f]]\n\n",
-                matrix[0][0], matrix[0][1],
-                matrix[1][0], matrix[1][1]);
+        // initialize model
+        Model2D model = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, payoffMatrices);
+
+        // check what to run and initialize output
+        boolean writeModel = writeModelFrequency != 0;
+        boolean visualize = visualizationFrequency != 0;
+
+        GridWindow win = null;
+        GifMaker gifWin = null;
+        if (visualize) {
+            win = new GridWindow("SpatialEGT", x, y, 4);
+            gifWin = new GifMaker(saveLoc+"growth.gif", 0, false);
+            writeModel = false;
+        }
+        FileIO modelOut = null;
+        if (writeModel) {
+            modelOut = new FileIO(saveLoc+"coords.csv", "w");
+            modelOut.Write("time,type,x,y\n");
         }
 
-        // // initialize model
-        // Model2D model = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, 0.0, false, 0.0, 0, payoff);
+        // run model
+        model.InitTumorRandom(numCells, proportionResistant);
+        for (int tick = 0; tick <= numTicks; tick++) {
+            if (writeModel) {
+                if ((tick % writeModelFrequency == 0)) {
+                    List<List<Integer>> coordLists = GetModelCoords(model);
+                    List<Integer> cellTypes = coordLists.get(0);
+                    List<Integer> xCoords = coordLists.get(1);
+                    List<Integer> yCoords = coordLists.get(2);
+                    for (int i = 0; i < cellTypes.size(); i++) {
+                        modelOut.Write(tick+","+cellTypes.get(i)+","+xCoords.get(i)+","+yCoords.get(i)+"\n");
+                    }
+                }
+            }
+            if (visualize) {
+                model.DrawModel(win, 0);
+                if (tick % visualizationFrequency == 0) {
+                    win.ToPNG(saveLoc+tick+".png");
+                }
+                gifWin.AddFrame(win);
+            }
+            model.ModelStep();
+        }
 
-        // // check what to run and initialize output
-        // boolean writeModel = writeModelFrequency != 0;
-        // boolean visualize = visualizationFrequency != 0;
-
-        // GridWindow win = null;
-        // GifMaker gifWin = null;
-        // if (visualize) {
-        //     win = new GridWindow("SpatialEGT", x, y, 4);
-        //     gifWin = new GifMaker(saveLoc+"growth.gif", 0, false);
-        //     writeModel = false;
-        // }
-        // FileIO modelOut = null;
-        // if (writeModel) {
-        //     modelOut = new FileIO(saveLoc+"coords.csv", "w");
-        //     modelOut.Write("time,type,x,y\n");
-        // }
-
-        // // run model
-        // model.InitTumorRandom(numCells, proportionResistant);
-        // for (int tick = 0; tick <= numTicks; tick++) {
-        //     if (writeModel) {
-        //         if ((tick % writeModelFrequency == 0)) {
-        //             List<List<Integer>> coordLists = GetModelCoords(model);
-        //             List<Integer> cellTypes = coordLists.get(0);
-        //             List<Integer> xCoords = coordLists.get(1);
-        //             List<Integer> yCoords = coordLists.get(2);
-        //             for (int i = 0; i < cellTypes.size(); i++) {
-        //                 modelOut.Write(tick+","+cellTypes.get(i)+","+xCoords.get(i)+","+yCoords.get(i)+"\n");
-        //             }
-        //         }
-        //     }
-        //     if (visualize) {
-        //         model.DrawModel(win, 0);
-        //         if (tick % visualizationFrequency == 0) {
-        //             win.ToPNG(saveLoc+modelName+tick+".png");
-        //         }
-        //         gifWin.AddFrame(win);
-        //     }
-        //     model.ModelStep();
-        // }
-
-        // // close output files
-        // if (visualize) {
-        //     win.Close();
-        //     gifWin.Close();
-        // }
-        // if (writeModel) {
-        //     modelOut.Close();
-        // }
+        // close output files
+        if (visualize) {
+            win.Close();
+            gifWin.Close();
+        }
+        if (writeModel) {
+            modelOut.Close();
+        }
     }
 }
