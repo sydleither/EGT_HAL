@@ -101,10 +101,10 @@ public class SpatialEGT2D {
         // check what to run and initialize output
         boolean writeModel = writeModelFrequency != 0;
         boolean visualize = visualizationFrequency != 0;
-
         boolean stopAtProportion = false;
         if (stopAt > 0) {
             stopAtProportion = true;
+            writeModel = true;
         }
 
         GridWindow win = null;
