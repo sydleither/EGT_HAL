@@ -32,20 +32,6 @@ public class SpatialEGT2D {
         return returnList;
     }
 
-    public static double ProportionSensitive(Model2D model) {
-        int sensitive = 0;
-        int resistant = 0;
-        for (Cell2D cell: model) {
-            if (cell.type == 0) {
-                sensitive += 1;
-            }
-            else {
-                resistant += 1;
-            }
-        }
-        return sensitive / ((double) (sensitive + resistant));
-    }
-
     public static List<double[][]> extractPayoffMatrices(Map<String, Object> params) {
         Pattern matrixKeyPattern = Pattern.compile("([a-dA-D])(?:([0-9]+))?");
         Map<Integer, Map<String, Double>> groupedMatrix = new TreeMap<>();
@@ -92,7 +78,6 @@ public class SpatialEGT2D {
         double deathRate = (double) params.get("deathRate");
         int numCells = (int) params.get("numCells");
         double proportionResistant = (double) params.get("proportionResistant");
-        double stopAt = (double) params.get("stopAt");
         List<double[][]> payoffMatrices = extractPayoffMatrices(params);
 
         // initialize model
@@ -101,11 +86,6 @@ public class SpatialEGT2D {
         // check what to run and initialize output
         boolean writeModel = writeModelFrequency != 0;
         boolean visualize = visualizationFrequency != 0;
-        boolean stopAtProportion = false;
-        if (stopAt > 0) {
-            stopAtProportion = true;
-            writeModel = true;
-        }
 
         GridWindow win = null;
         GifMaker gifWin = null;
@@ -123,19 +103,6 @@ public class SpatialEGT2D {
         // run model
         model.InitTumorRandom(numCells, proportionResistant);
         for (int tick = 0; tick <= numTicks; tick++) {
-            if (stopAtProportion) {
-                double proportionSensitive = ProportionSensitive(model);
-                if (proportionSensitive - 0.025 < stopAt && proportionSensitive + 0.025 > stopAt) {
-                    List<List<Integer>> coordLists = GetModelCoords(model);
-                    List<Integer> cellTypes = coordLists.get(0);
-                    List<Integer> xCoords = coordLists.get(1);
-                    List<Integer> yCoords = coordLists.get(2);
-                    for (int i = 0; i < cellTypes.size(); i++) {
-                        modelOut.Write(tick+","+cellTypes.get(i)+","+xCoords.get(i)+","+yCoords.get(i)+"\n");
-                    }
-                    break;
-                }
-            }
             if (writeModel) {
                 if ((tick % writeModelFrequency == 0)) {
                     List<List<Integer>> coordLists = GetModelCoords(model);

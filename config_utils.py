@@ -39,8 +39,7 @@ def write_config(
     ticks=250,
     interaction_radius=2,
     reproduction_radius=1,
-    turnover=0.009,
-    stop_at=0.0
+    turnover=0.009
 ):
     """Write a config which parameterizes an EGT_HAL run
 
@@ -75,8 +74,7 @@ def write_config(
         "numTicks": ticks,
         "deathRate": turnover,
         "numCells": num_cells,
-        "proportionResistant": proportion_r,
-        "stopAt": stop_at
+        "proportionResistant": proportion_r
     }
 
     if type(payoff[0]) is not list:
