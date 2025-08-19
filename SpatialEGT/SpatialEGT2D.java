@@ -104,7 +104,7 @@ public class SpatialEGT2D {
 
         boolean stopAtProportion = false;
         if (stopAt > 0) {
-            boolean stopAtProportion = true;
+            stopAtProportion = true;
         }
 
         GridWindow win = null;
