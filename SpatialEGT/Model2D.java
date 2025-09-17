@@ -7,7 +7,7 @@ import HAL.Util;
 
 public class Model2D extends AgentGrid2D<Cell2D> {
     Rand rng;
-    double deathRate, drugGrowthReduction, adaptiveTreatmentThreshold;
+    double deathRate, mutationRate, drugGrowthReduction, adaptiveTreatmentThreshold;
     boolean adaptiveTherapy;
     double[][] payoff;
     int[] divHood;
@@ -16,11 +16,12 @@ public class Model2D extends AgentGrid2D<Cell2D> {
     int startingPop;
 
     public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius,
-                   double deathRate, double drugGrowthReduction, boolean adaptiveTherapy,
-                   double adaptiveTreatmentThreshold, double[][] payoff) {
+                   double deathRate, double mutationRate, double drugGrowthReduction, 
+                   boolean adaptiveTherapy, double adaptiveTreatmentThreshold, double[][] payoff) {
         super(x, y, Cell2D.class);
         this.rng = rng;
         this.deathRate = deathRate;
+        this.mutationRate = mutationRate;
         this.drugGrowthReduction = drugGrowthReduction;
         this.adaptiveTherapy = adaptiveTherapy;
         this.adaptiveTreatmentThreshold = adaptiveTreatmentThreshold;

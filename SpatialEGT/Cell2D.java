@@ -6,11 +6,16 @@ import HAL.Util;
 public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
     int type;
     int color;
-    double deathRate;
+    double deathRate, mutationRate;
 
     public void Init(int type) {
         this.type = type;
         this.deathRate = G.deathRate;
+        this.mutationRate = G.mutationRate;
+        SetColor(this.type);
+    }
+
+    private void SetColor(int type) {
         if (type == 0) {
             this.color = Util.RGB256(76, 149, 108);
         }
@@ -33,6 +38,11 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
     }
 
     public void CellStep() {
+        //mutation
+        if (G.rng.Double() < G.mutationRate) {
+            this.type = 1 - this.type;
+            SetColor(this.type);
+        }
         //divison + drug effects
         double divRate = this.GetDivRate();
         if (G.drugConcentration > 0.0 && this.type == 0) {

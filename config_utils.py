@@ -43,6 +43,7 @@ def write_config(
     interaction_radius=2,
     reproduction_radius=1,
     turnover=0.009,
+    mutation_rate=0.0,
     drug_reduction=0.5,
     at_threshold=0.5,
     init_tumor=0,
@@ -79,6 +80,8 @@ def write_config(
     :param turnover: the probability each cell dies each time step, defaults to 0.009
     :type turnover: float, optional
     :param drug_reduction: how much reproduction rate is reduced by drug, defaults to 0.5
+    :type mutation_rate: float, optional
+    :param drug_reduction: probability of cell mutating each time step, defaults to 0.0
     :type drug_reduction: float, optional
     :param at_threshold: adaptive therapy drug on threshold, defaults to 0.5
     :type at_threshold: float, optional
@@ -98,6 +101,7 @@ def write_config(
         "reproductionRadius": reproduction_radius,
         "numTicks": ticks,
         "deathRate": turnover,
+        "mutationRate": mutation_rate,
         "drugGrowthReduction": drug_reduction,
         "numCells": num_cells,
         "proportionResistant": proportion_r,

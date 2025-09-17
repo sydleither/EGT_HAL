@@ -42,6 +42,7 @@ public class SpatialEGT2D {
         int interactionRadius = (int) params.get("interactionRadius");
         int reproductionRadius = (int) params.get("reproductionRadius");
         double deathRate = (double) params.get("deathRate");
+        double mutationRate = (double) params.get("mutationRate");
         double drugGrowthReduction = (double) params.get("drugGrowthReduction");
         int numCells = (int) params.get("numCells");
         double proportionResistant = (double) params.get("proportionResistant");
@@ -57,15 +58,15 @@ public class SpatialEGT2D {
         // initialize with specified models
         HashMap<String,Model2D> models = new HashMap<String,Model2D>();
         if (runNull == 1) {
-            Model2D nullModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, 0.0, false, 0.0, payoff);
+            Model2D nullModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, mutationRate, 0.0, false, 0.0, payoff);
             models.put("nodrug", nullModel);
         }
         if (runContinuous == 1) {
-            Model2D continuousModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, false, 0.0, payoff);
+            Model2D continuousModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, mutationRate, drugGrowthReduction, false, 0.0, payoff);
             models.put("continuous", continuousModel);
         }
         if (runAdaptive == 1) {
-            Model2D adaptiveModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, drugGrowthReduction, true, adaptiveTreatmentThreshold, payoff);
+            Model2D adaptiveModel = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, mutationRate, drugGrowthReduction, true, adaptiveTreatmentThreshold, payoff);
             models.put("adaptive", adaptiveModel);
         }
 
