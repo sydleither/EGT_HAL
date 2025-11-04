@@ -39,7 +39,8 @@ def write_config(
     ticks=250,
     interaction_radius=2,
     reproduction_radius=1,
-    turnover=0.009
+    turnover=0.009,
+    grid_expansion=None,
 ):
     """Write a config which parameterizes an EGT_HAL run
 
@@ -76,6 +77,8 @@ def write_config(
         "numCells": num_cells,
         "proportionResistant": proportion_r
     }
+    if grid_expansion:
+        config["grid_expansion"] = grid_expansion
 
     if type(payoff[0]) is not list:
         payoff = [payoff]
