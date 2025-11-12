@@ -1,5 +1,7 @@
 package SpatialEGT;
 
+import java.util.List;
+
 import HAL.GridsAndAgents.AgentGrid2D;
 import HAL.Gui.GridWindow;
 import HAL.Rand;
@@ -7,26 +9,19 @@ import HAL.Util;
 
 public class Model2D extends AgentGrid2D<Cell2D> {
     Rand rng;
-    double deathRate, mutationRate, drugGrowthReduction, adaptiveTreatmentThreshold;
-    boolean adaptiveTherapy;
+    double deathRate;
+    double mutationRate;
     double[][] payoff;
     int[] divHood;
     int[] gameHood;
-    int drugConcentration;
     int startingPop;
 
-    public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius,
-                   double deathRate, double mutationRate, double drugGrowthReduction, 
-                   boolean adaptiveTherapy, double adaptiveTreatmentThreshold, double[][] payoff) {
+    public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius, double deathRate, double mutationRate, double[][] payoff) {
         super(x, y, Cell2D.class);
         this.rng = rng;
         this.deathRate = deathRate;
         this.mutationRate = mutationRate;
-        this.drugGrowthReduction = drugGrowthReduction;
-        this.adaptiveTherapy = adaptiveTherapy;
-        this.adaptiveTreatmentThreshold = adaptiveTreatmentThreshold;
         this.payoff = payoff;
-        this.drugConcentration = 1;
         this.gameHood = Util.CircleHood(false, gameHoodRadius);
         this.divHood = Util.CircleHood(false, divHoodRadius);
     }
@@ -54,119 +49,10 @@ public class Model2D extends AgentGrid2D<Cell2D> {
         }
     }
 
-    public void InitTumorCircle(double proportionResistant, int gap) {
-        //TODO has issue of sensitive cells being removed by radius gap
-        //so proportion resistant is not right
-        int tumorLength = xDim-2*gap;
-        int halfTumorLength = (int)Math.round(tumorLength/2);
-        int startLoc = gap;
-        int numResistant = (int)(Math.pow(tumorLength, 2) * proportionResistant);
-        int radius = (int)Math.round(Math.sqrt(numResistant/Math.PI));
-        int gapRadius = radius+gap;
-        int i = 0;
-        for (int x = startLoc; x < startLoc+tumorLength; x++) {
-            for (int y = startLoc; y < startLoc+tumorLength; y++) {
-                int relativeX = x - startLoc - halfTumorLength;
-                int relativeY = y - startLoc - halfTumorLength;
-                boolean inGap = Math.pow(relativeX, 2) + Math.pow(relativeY, 2) <= Math.pow(gapRadius, 2);
-                boolean inResistantCircle = Math.pow(relativeX, 2) + Math.pow(relativeY, 2) <= Math.pow(radius, 2);
-                if (inGap && !inResistantCircle) {
-                    continue;
-                }
-                if (inResistantCircle) {
-                    NewAgentSQ(x, y).Init(1);
-                }
-                else {
-                    NewAgentSQ(x, y).Init(0);
-                }
-                i++;
-            }
-        }
-        this.startingPop = i;
-    }
-
-    public void InitTumorLinear(double proportionResistant, int gap) {
-        int startLoc = gap;
-        int endLoc = xDim - gap;
-        int gapStart = (int)Math.ceil((xDim*proportionResistant)) - (int)Math.ceil(gap/2) - 1;
-        int gapEnd = (int)Math.ceil((xDim*proportionResistant)) + (int)Math.floor(gap/2);
-        int i = 0;
-        for (int x = startLoc; x < endLoc; x++) {
-            for (int y = startLoc; y < endLoc; y++) {
-                if (x >= gapStart && x < gapEnd) {
-                    continue;
-                }
-                if (x < gapStart) {
-                    NewAgentSQ(x, y).Init(1);
-                }
-                else {
-                    NewAgentSQ(x, y).Init(0);
-                }
-                i++;
-            }
-        }
-        this.startingPop = i;
-    }
-
-    public void InitTumorConvex(int numCells, double proportionResistant) {
-        int tumorLength = (int)Math.floor(Math.sqrt(numCells));
-        int halfTumorLength = (int)Math.floor(tumorLength/2);
-        int startLoc = (int)Math.floor(xDim/2) - halfTumorLength;
-        int numResistant = (int)(numCells * proportionResistant);
-        int radius = (int)Math.sqrt((2*(numCells-numResistant))/Math.PI);
-        int i = 0;
-        for (int x = startLoc; x < startLoc+tumorLength; x++) {
-            for (int y = startLoc; y < startLoc+tumorLength; y++) {
-                int relativeX = x - startLoc;
-                int relativeY = y - startLoc;
-                if (Math.pow(relativeX-(int)tumorLength/2, 2) + Math.pow(relativeY, 2) <= Math.pow(radius, 2)) {
-                    NewAgentSQ(x, y).Init(1);
-                }
-                else {
-                    NewAgentSQ(x, y).Init(0);
-                }
-                i++;
-            }
-        }
-        this.startingPop = i;
-    }
-
-    public void InitTumorConcave(int numCells, double proportionResistant) {
-        int tumorLength = (int)Math.floor(Math.sqrt(numCells));
-        int halfTumorLength = (int)Math.floor(tumorLength/2);
-        int startLoc = (int)Math.floor(xDim/2) - halfTumorLength;
-        int numResistant = (int)(numCells * proportionResistant);
-        int radius = (int)Math.sqrt((2*(numCells-numResistant))/Math.PI);
-        int i = 0;
-        for (int x = startLoc; x < startLoc+tumorLength; x++) {
-            for (int y = startLoc; y < startLoc+tumorLength; y++) {
-                int relativeX = x - startLoc;
-                int relativeY = y - startLoc;
-                if (Math.pow(relativeX-(int)tumorLength/2, 2) + Math.pow(relativeY, 2) <= Math.pow(radius, 2)) {
-                    NewAgentSQ(x, y).Init(0);
-                }
-                else {
-                    NewAgentSQ(x, y).Init(1);
-                }
-                i++;
-            }
-        }
-        this.startingPop = i;
-    }
-
     public void ModelStep() {
         ShuffleAgents(rng);
         for (Cell2D cell : this) {
             cell.CellStep();
-        }
-
-        if (this.adaptiveTherapy) {
-            if (this.Pop() < this.startingPop * (1 - this.adaptiveTreatmentThreshold)) {
-                this.drugConcentration = 0;
-            }
-            else if (this.Pop() >= this.startingPop) {
-                this.drugConcentration = 1;
-            }
         }
     }
 

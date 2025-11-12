@@ -45,9 +45,6 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
         }
         //divison + drug effects
         double divRate = this.GetDivRate();
-        if (G.drugConcentration > 0.0 && this.type == 0) {
-            divRate = divRate * (1 - G.drugGrowthReduction);
-        }
         if (G.rng.Double() < divRate) {
             int options = MapEmptyHood(G.divHood);
             if (options > 0) {

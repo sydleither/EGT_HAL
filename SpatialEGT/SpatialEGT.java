@@ -1,6 +1,5 @@
 package SpatialEGT;
 
-import java.io.*;
 import java.nio.file.Paths;
 import java.util.Map;
 
@@ -15,14 +14,7 @@ public class SpatialEGT {
         String dimension = null;
         String rep = null;
         int visualizationFrequency = 0;
-        if (args.length == 0) {
-            dataDir = "output";
-            expDir = "test";
-            expName = "test";
-            dimension = "2D";
-            rep = "0";
-        }
-        else if (args.length == 5) {
+        if (args.length == 5) {
             dataDir = args[0];
             expDir = args[1];
             expName = args[2];
@@ -38,10 +30,10 @@ public class SpatialEGT {
             visualizationFrequency = Integer.parseInt(args[5]);
         }
         else {
-            System.out.println("Please provide the following arguments: data directory, experiment directory, experiment name, dimension, replicate/seed, and (optional) visualization frequency.");
+            throw new java.lang.RuntimeException("Please provide the following arguments: data directory, experiment directory, experiment name, dimension, replicate/seed, and (optional) visualization frequency.");
         }
         String saveLoc = dataDir+"/"+expDir+"/"+expName+"/"+rep+"/"+dimension;
-        
+
         // read in json parameters
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> params;
@@ -57,8 +49,8 @@ public class SpatialEGT {
         if (dimension.equals("2D")) {
             new SpatialEGT2D(saveLoc, params, Long.parseLong(rep), visualizationFrequency);
         }
-        else if (dimension.equals("3D")) {
-            new SpatialEGT3D(saveLoc, params, Long.parseLong(rep));
+        else {
+            throw new java.lang.RuntimeException("Dimension not supported.");
         }
     }
 }

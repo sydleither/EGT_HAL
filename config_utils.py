@@ -3,8 +3,6 @@
 import json
 import os
 
-from scipy.stats import qmc
-
 
 def write_run_scripts(data_dir, experiment_name, run_output):
     """Writes batched bash files for running multiple instances of EGT_HAL
@@ -33,9 +31,6 @@ def write_config(
     payoff,
     num_cells,
     proportion_r,
-    null=1,
-    adaptive=0,
-    continuous=0,
     write_freq=250,
     x=125,
     y=125,
@@ -43,11 +38,7 @@ def write_config(
     interaction_radius=2,
     reproduction_radius=1,
     turnover=0.009,
-    mutation_rate=0.0,
-    drug_reduction=0.5,
-    at_threshold=0.5,
-    init_tumor=0,
-    toy_gap=5,
+    mutation_rate=0.0
 ):
     """Write a config which parameterizes an EGT_HAL run
 
@@ -65,13 +56,6 @@ def write_config(
     :type num_cells: int
     :param proportion_r: how many of the starting cells are resistant
     :type proportion_r: float
-    :param null: whether to run the null model, defaults to 1
-    :type null: int, optional
-    :param adaptive: whether to run the adaptive model, defaults to 0
-    :type adaptive: int, optional
-    :param continuous: whether to run the continuous drug model, defaults to 0
-    :type continuous: int, optional
-    :param write_freq: how often to save the model state to csv, defaults to 250
     :type write_freq: int, optional
     :param ticks: how many time steps to run the model for, defaults to 250
     :type ticks: int, optional
@@ -79,21 +63,8 @@ def write_config(
     :type radius: int, optional
     :param turnover: the probability each cell dies each time step, defaults to 0.009
     :type turnover: float, optional
-    :param drug_reduction: how much reproduction rate is reduced by drug, defaults to 0.5
-    :type mutation_rate: float, optional
-    :param drug_reduction: probability of cell mutating each time step, defaults to 0.0
-    :type drug_reduction: float, optional
-    :param at_threshold: adaptive therapy drug on threshold, defaults to 0.5
-    :type at_threshold: float, optional
-    :param init_tumor: initial tumor type (see SpatialEGT/SpatialEGT2D.java), defaults to 0
-    :type init_tumor: int, optional
-    :param toy_gap: how much space between tumor borders, defaults to 5
-    :type toy_gap: int, optional
     """
     config = {
-        "null": null,
-        "adaptive": adaptive,
-        "continuous": continuous,
         "writeModelFrequency": write_freq,
         "x": x,
         "y": y,
@@ -102,16 +73,12 @@ def write_config(
         "numTicks": ticks,
         "deathRate": turnover,
         "mutationRate": mutation_rate,
-        "drugGrowthReduction": drug_reduction,
         "numCells": num_cells,
         "proportionResistant": proportion_r,
-        "adaptiveTreatmentThreshold": at_threshold,
-        "initialTumor": init_tumor,
-        "toyGap": toy_gap,
         "A": payoff[0],
         "B": payoff[1],
         "C": payoff[2],
-        "D": payoff[3],
+        "D": payoff[3]
     }
 
     path = f"{data_dir}/{exp_dir}/{config_name}"
@@ -139,6 +106,7 @@ def latin_hybercube_sample(num_samples, param_names, lower_bounds, upper_bounds,
     :return: the sampled parameters, named
     :rtype: list[dict]
     """
+    from scipy.stats import qmc
     sampler = qmc.LatinHypercube(d=len(lower_bounds), seed=seed)
     unscaled_sample = sampler.random(n=num_samples)
     sample = qmc.scale(unscaled_sample, lower_bounds, upper_bounds).tolist()
