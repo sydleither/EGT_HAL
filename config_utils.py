@@ -3,8 +3,6 @@
 import json
 import os
 
-from scipy.stats import qmc
-
 
 def write_run_scripts(data_dir, experiment_name, run_output):
     """Writes batched bash files for running multiple instances of EGT_HAL
@@ -40,7 +38,6 @@ def write_config(
     interaction_radius=2,
     reproduction_radius=1,
     turnover=0.009,
-    grid_expansion=None,
 ):
     """Write a config which parameterizes an EGT_HAL run
 
@@ -52,7 +49,7 @@ def write_config(
     :type config_name: str
     :param seed: the seed for the EGT_HAL run
     :type seed: int or str
-    :param payoff: the payoff matrices in format [a,b,c,d] or [[a,b,c,d], [a,b,c,d], ...]
+    :param payoff: the payoff matrix in format [a,b,c,d]
     :type payoff: list[float]
     :param num_cells: starting number of cells
     :type num_cells: int
@@ -75,24 +72,12 @@ def write_config(
         "numTicks": ticks,
         "deathRate": turnover,
         "numCells": num_cells,
-        "proportionResistant": proportion_r
+        "proportionResistant": proportion_r,
+        "A": payoff[0],
+        "B": payoff[1],
+        "C": payoff[2],
+        "D": payoff[3]
     }
-    if grid_expansion:
-        config["grid_expansion"] = grid_expansion
-
-    if type(payoff[0]) is not list:
-        payoff = [payoff]
-    for m,matrix in enumerate(payoff):
-        if m == 0:
-            config["A"] = matrix[0]
-            config["B"] = matrix[1]
-            config["C"] = matrix[2]
-            config["D"] = matrix[3]
-        else:
-            config[f"A{m}"] = matrix[0]
-            config[f"B{m}"] = matrix[1]
-            config[f"C{m}"] = matrix[2]
-            config[f"D{m}"] = matrix[3]
 
     path = f"{data_dir}/{exp_dir}/{config_name}"
     if not os.path.exists(f"{path}/{seed}"):
@@ -119,6 +104,7 @@ def latin_hybercube_sample(num_samples, param_names, lower_bounds, upper_bounds,
     :return: the sampled parameters, named
     :rtype: list[dict]
     """
+    from scipy.stats import qmc
     sampler = qmc.LatinHypercube(d=len(lower_bounds), seed=seed)
     unscaled_sample = sampler.random(n=num_samples)
     sample = qmc.scale(unscaled_sample, lower_bounds, upper_bounds).tolist()

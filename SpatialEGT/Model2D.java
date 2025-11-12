@@ -10,16 +10,18 @@ import HAL.Util;
 public class Model2D extends AgentGrid2D<Cell2D> {
     Rand rng;
     double deathRate;
-    List<double[][]> payoffMatrices;
+    double mutationRate;
+    double[][] payoff;
     int[] divHood;
     int[] gameHood;
     int startingPop;
 
-    public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius, double deathRate, List<double[][]> payoffMatrices) {
+    public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius, double deathRate, double mutationRate, double[][] payoff) {
         super(x, y, Cell2D.class);
         this.rng = rng;
         this.deathRate = deathRate;
-        this.payoffMatrices = payoffMatrices;
+        this.mutationRate = mutationRate;
+        this.payoff = payoff;
         this.gameHood = Util.CircleHood(false, gameHoodRadius);
         this.divHood = Util.CircleHood(false, divHoodRadius);
     }

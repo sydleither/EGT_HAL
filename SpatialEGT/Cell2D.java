@@ -6,11 +6,16 @@ import HAL.Util;
 public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
     int type;
     int color;
-    double deathRate;
+    double deathRate, mutationRate;
 
     public void Init(int type) {
         this.type = type;
         this.deathRate = G.deathRate;
+        this.mutationRate = G.mutationRate;
+        SetColor(this.type);
+    }
+
+    private void SetColor(int type) {
         if (type == 0) {
             this.color = Util.RGB256(76, 149, 108);
         }
@@ -19,21 +24,7 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
         }
     }
 
-    public double[][] GetPayoffMatrix() {
-        int x = this.Xsq();
-        int gradients = G.payoffMatrices.size();
-        for (int g = 0; g < gradients; g++) {
-            if (x >= (g*(G.xDim/gradients)) && x < ((g+1)*(G.xDim/gradients))) {
-                return G.payoffMatrices.get(g);
-            }
-        }
-        System.out.println("Error in GetPayoffMatrix");
-        System.exit(0);
-        return G.payoffMatrices.get(0);
-    }
-
     public double GetDivRate() {
-        double[][] payoffMatrix = GetPayoffMatrix();
         double total_payoff = 0;
         int neighbors = MapOccupiedHood(G.gameHood);
         if (neighbors == 0) {
@@ -41,12 +32,17 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
         }
         for (int i = 0; i < neighbors; i++) {
             Cell2D neighborCell = G.GetAgent(G.gameHood[i]);
-            total_payoff += payoffMatrix[this.type][neighborCell.type];
+            total_payoff += G.payoff[this.type][neighborCell.type];
         }
         return total_payoff/neighbors;
     }
 
     public void CellStep() {
+        //mutation
+        if (G.rng.Double() < G.mutationRate) {
+            this.type = 1 - this.type;
+            SetColor(this.type);
+        }
         //divison + drug effects
         double divRate = this.GetDivRate();
         if (G.rng.Double() < divRate) {

@@ -32,41 +32,6 @@ public class SpatialEGT2D {
         return returnList;
     }
 
-    public static List<double[][]> extractPayoffMatrices(Map<String, Object> params) {
-        Pattern matrixKeyPattern = Pattern.compile("([a-dA-D])(?:([0-9]+))?");
-        Map<Integer, Map<String, Double>> groupedMatrix = new TreeMap<>();
-
-        for (Map.Entry<String, Object> entry : params.entrySet()) {
-            Matcher matcher = matrixKeyPattern.matcher(entry.getKey());
-            if (matcher.matches() && entry.getValue() instanceof Number) {
-                String label = matcher.group(1).toLowerCase();
-                String suffix = matcher.group(2);
-                int index = (suffix != null) ? Integer.parseInt(suffix) : 0;
-                groupedMatrix
-                    .computeIfAbsent(index, k -> new HashMap<>())
-                    .put(label, ((Number) entry.getValue()).doubleValue());
-            }
-        }
-
-        List<double[][]> payoffMatrices = new ArrayList<>();
-        for (Map.Entry<Integer, Map<String, Double>> entry : groupedMatrix.entrySet()) {
-            Map<String, Double> values = entry.getValue();
-            for (String key : List.of("a", "b", "c", "d")) {
-                if (!values.containsKey(key)) {
-                    throw new IllegalArgumentException("Missing matrix value for key '" + key + "' in group " + entry.getKey());
-                }
-            }
-            double[][] matrix = new double[2][2];
-            matrix[0][0] = values.get("a");
-            matrix[0][1] = values.get("b");
-            matrix[1][0] = values.get("c");
-            matrix[1][1] = values.get("d");
-            payoffMatrices.add(matrix);
-        }
-
-        return payoffMatrices;
-    }
-
     public SpatialEGT2D(String saveLoc, Map<String, Object> params, long seed, int visualizationFrequency) {
         // turn parameters json into variables
         int writeModelFrequency = (int) params.get("writeModelFrequency");
@@ -76,17 +41,23 @@ public class SpatialEGT2D {
         int interactionRadius = (int) params.get("interactionRadius");
         int reproductionRadius = (int) params.get("reproductionRadius");
         double deathRate = (double) params.get("deathRate");
+        double mutationRate = (double) params.get("mutationRate");
         int numCells = (int) params.get("numCells");
         double proportionResistant = (double) params.get("proportionResistant");
-        List<double[][]> payoffMatrices = extractPayoffMatrices(params);
+        double[][] payoff = new double[2][2];
+        payoff[0][0] = (double) params.get("A");
+        payoff[0][1] = (double) params.get("B");
+        payoff[1][0] = (double) params.get("C");
+        payoff[1][1] = (double) params.get("D");
 
         // initialize model
-        Model2D model = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, payoffMatrices);
+        Model2D model = new Model2D(x, y, new Rand(seed), interactionRadius, reproductionRadius, deathRate, mutationRate, payoff);
 
-        // check what to run and initialize output
+        // check what to run
         boolean writeModel = writeModelFrequency != 0;
         boolean visualize = visualizationFrequency != 0;
 
+        // initialize output
         GridWindow win = null;
         GifMaker gifWin = null;
         if (visualize) {
