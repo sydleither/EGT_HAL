@@ -18,11 +18,12 @@ def main():
     parser.add_argument("-fr", "--fraction_resistant", type=float, default=0.5)
     parser.add_argument("-m", "--interaction_radius", type=int, default=2)
     parser.add_argument("-n", "--reproduction_radius", type=int, default=1)
-    parser.add_argument("-to", "--turnover", type=int, default=0.009)
-    parser.add_argument("-a", "--a", type=int, default=0.1)
-    parser.add_argument("-b", "--b", type=int, default=0.12)
-    parser.add_argument("-c", "--c", type=int, default=0.09)
-    parser.add_argument("-d", "--d", type=int, default=0.15)
+    parser.add_argument("-to", "--turnover", type=float, default=0.009)
+    parser.add_argument("-mu", "--mutation_rate", type=float, default=0.0)
+    parser.add_argument("-a", "--a", type=float, default=0.1)
+    parser.add_argument("-b", "--b", type=float, default=0.12)
+    parser.add_argument("-c", "--c", type=float, default=0.09)
+    parser.add_argument("-d", "--d", type=float, default=0.15)
     parser.add_argument("-freq", "--write_freq", type=int, default=10)
     parser.add_argument("-end", "--end_time", type=int, default=100)
     args = parser.parse_args()
@@ -42,6 +43,7 @@ def main():
         interaction_radius=args.interaction_radius,
         reproduction_radius=args.reproduction_radius,
         turnover=args.turnover,
+        mutation_rate=args.mutation_rate,
         write_freq=args.write_freq,
         ticks=args.end_time,
     )

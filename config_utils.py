@@ -38,6 +38,7 @@ def write_config(
     interaction_radius=2,
     reproduction_radius=1,
     turnover=0.009,
+    mutation_rate=0.0
 ):
     """Write a config which parameterizes an EGT_HAL run
 
@@ -71,6 +72,7 @@ def write_config(
         "reproductionRadius": reproduction_radius,
         "numTicks": ticks,
         "deathRate": turnover,
+        "mutationRate": mutation_rate,
         "numCells": num_cells,
         "proportionResistant": proportion_r,
         "A": payoff[0],
