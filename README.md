@@ -25,8 +25,7 @@ Place the three jar files in `lib/`.
 When modifying the Java code, run `javac -d "build" -cp "lib/*" @sources.txt` to recompile.
 
 ### Test Installation
-`python3 create_config.py`
-
-`java -cp build/:lib/* SpatialEGT.SpatialEGT data experiment run 2D 42`
-- Arguments are: overall data directory, experiment directory, experiment name, dimension, replicate/seed
-- They were specified in create_config.py
+```
+python3 create_config.py
+java -cp build/:lib/* SpatialLV.SpatialLV data/test/config.json
+```
