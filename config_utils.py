@@ -17,6 +17,9 @@ def write_run_scripts(data_dir, experiment_name, run_output):
     run_output_batches = [run_output[i : i + 999] for i in range(0, len(run_output), 999)]
     for i, batch in enumerate(run_output_batches):
         with open(f"{data_dir}/{experiment_name}/run{i}.sh", "w", encoding="UTF-8") as f:
+            if run_output[0][0:4] == "java":
+                abs_path = os.path.dirname(os.path.realpath(__file__)).replace(" ", "\ ")
+                f.write(f"cd {abs_path}\n")
             for output_line in batch:
                 f.write(output_line)
     print("Make sure you recompile SpatialEGT before running experiments:")
