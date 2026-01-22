@@ -4,7 +4,7 @@ import argparse
 import os
 
 
-def sbatch(email, name, time, memory, path, node):
+def sbatch(email, model, name, time, memory, path, node):
     """Generate sbatch script str"""
     sbatch_script = [
         "#!/bin/bash --login",
@@ -16,8 +16,8 @@ def sbatch(email, name, time, memory, path, node):
         f"#SBATCH --mem-per-cpu={memory}",
         "module load Java/21.0.2",
         f"cd {path}",
-        "java -cp build/:lib/* SpatialEGT.SpatialEGT $*",
-        ""
+        f"java -cp build/:lib/* {model}.{model} $*",
+        "",
     ]
     if node is not None:
         sbatch_script.insert(1, f"#SBATCH -A {node}")
@@ -28,6 +28,7 @@ def main():
     """Generate and save sbatch script based on input arguments"""
     parser = argparse.ArgumentParser()
     parser.add_argument("-mail", "--email", type=str)
+    parser.add_argument("-model", "--model", type=str, choices=["SpatialEGT", "SpatialLV"])
     parser.add_argument("-name", "--job_name", type=str, default="spatialegt")
     parser.add_argument("-time", "--time", type=str, default="0-00:10")
     parser.add_argument("-mem", "--memory", type=str, default="1gb")
@@ -39,7 +40,7 @@ def main():
     if path is None:
         path = os.getcwd().replace(" ", "\ ")
 
-    script = sbatch(args.email, args.job_name, args.time, args.memory, path, args.node)
+    script = sbatch(args.email, args.model, args.job_name, args.time, args.memory, path, args.node)
     if not os.path.exists(f"out/{args.job_name}"):
         os.makedirs(f"out/{args.job_name}")
     with open(f"job_{args.job_name}.sb", "w", encoding="UTF-8") as f:

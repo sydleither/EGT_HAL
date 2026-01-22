@@ -1,14 +1,21 @@
 package SpatialLV;
 
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
+
+import HAL.Rand;
+import HAL.Tools.FileIO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SpatialLV {
     public static void main(String[] args) {
         // read in path to config
-        String configFile = null;
+        String dataDir = args[0];
+        String expDir = args[1];
+        String expName = args[2];
+        String configFile = dataDir+"/"+expDir+"/"+expName+"/"+expName+".json";
 
         // read in json parameters
         ObjectMapper mapper = new ObjectMapper();
@@ -35,34 +42,38 @@ public class SpatialLV {
 
         double[][] interactionMatrix = new double[numTypes][numTypes];
         double[] intrinsicGrowths = new double[numTypes];
-        double[] initialCounts = new double[numTypes];
+        int[] carryingCapacities = new int[numTypes];
+        int[] initialCounts = new int[numTypes];
         double[] deathRates = new double[numTypes];
         for (int i = 0; i < numTypes; i++) {
             for (int j = 0; j < numTypes; j++) {
-                interactionMatrix[i][j] = (float) params.get("A_"+i+j);
+                interactionMatrix[i][j] = (double) params.get("A_"+i+j);
             }
-            intrinsicGrowths[i] = (float) params.get("r_"+i);
-            deathRates[i] = (float) params.get("d_"+i);
-            initialCounts[i] = (float) params.get("x_"+i);
+            intrinsicGrowths[i] = (double) params.get("r_"+i);
+            carryingCapacities[i] = (int) params.get("k_"+i);
+            deathRates[i] = (double) params.get("d_"+i);
+            initialCounts[i] = (int) params.get("x_"+i);
         }
 
         // initialize model
+        Model2D model;
         if (dimension == 2) {
-            Model2D model = new Model2D(seed, growthModel, numTypes, interactionRadius, reproductionRadius, gridLength, gridHeight, interactionMatrix, intrinsicGrowths, initialCounts, deathRates);
+            model = new Model2D(new Rand(seed), growthModel, numTypes, interactionRadius, reproductionRadius, gridLength, gridHeight, interactionMatrix, intrinsicGrowths, carryingCapacities, deathRates);
         }
         else {
             throw new java.lang.RuntimeException(dimension+"D not supported.");
         }
 
         // initialize output
-        modelOut = new FileIO(saveLoc+"coords.csv", "w");
+        String saveLoc = dataDir+"/"+expDir+"/"+expName+"/"+seed+"/"+dimension;
+        FileIO modelOut = new FileIO(saveLoc+"Dcoords.csv", "w");
         modelOut.Write("time,type,x,y\n");
 
         // run model
-        model.InitTumorRandom(numCells, proportionResistant);
+        model.InitTumorRandom(initialCounts);
         for (int tick = 0; tick <= numTicks; tick++) {
             if ((tick % writeFrequency == 0)) {
-                List<List<Integer>> coordLists = model.GetCoords(model);
+                List<List<Integer>> coordLists = model.GetCoords();
                 List<Integer> cellTypes = coordLists.get(0);
                 List<Integer> xCoords = coordLists.get(1);
                 List<Integer> yCoords = coordLists.get(2);

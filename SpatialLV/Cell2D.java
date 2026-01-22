@@ -1,5 +1,7 @@
 package SpatialLV;
 
+import java.lang.Math;
+
 import HAL.GridsAndAgents.AgentSQ2Dunstackable;
 import HAL.Util;
 
@@ -14,7 +16,7 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
         this.deathRate = G.deathRates[type];
     }
 
-    public double GetReproRate() {
+    public double GetGrowthFactor() {
         // initialize neighbor counts
         int[] neighborCounts = new int[G.numTypes];
         for (int i = 0; i < G.numTypes; i++) {
@@ -30,25 +32,42 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
 
         // calculate growth factor
         double f = this.intrinsicGrowth;
-        for (int i = 0; i < numTypes; i++) {
+        for (int i = 0; i < G.numTypes; i++) {
             f += G.interactionMatrix[this.type][i]*neighborCounts[i];
         }
 
-        // convert growth factor into probability of reproduction
-        return 1.0 - Math.exp(-Math.max(f, 0));
+        // convert growth factor into probability of death/reproduction
+        return f / (neighborCounts[this.type] + 1);
     }
 
     public void CellStep() {
-        // reproduction
-        double divRate = GetReproRate();
-        if (G.rng.Double() < divRate) {
-            int options = MapEmptyHood(G.divHood);
-            if (options > 0) {
-                G.NewAgentSQ(G.divHood[G.rng.Int(options)]).Init(this.type);
+        double growthFactor = GetGrowthFactor();
+
+        // death from interaction
+        if (growthFactor < 0) {
+            if (G.rng.Double() < Math.abs(growthFactor)) {
+                Dispose();
+                return;
             }
         }
 
-        // death
+        // reproduction from interaction
+        if (growthFactor > 0) {
+            // don't reproduce if neighbor counts hit carrying capacity
+            int neighbors = MapOccupiedHood(G.reproHood);
+            if (neighbors >= G.carryingCapacities[this.type]) {
+                return;
+            }
+            // reproduce
+            if (G.rng.Double() < growthFactor) {
+                int options = MapEmptyHood(G.reproHood);
+                if (options > 0) {
+                    G.NewAgentSQ(G.reproHood[G.rng.Int(options)]).Init(this.type);
+                }
+            }
+        }
+
+        // death from natural causes
         if (G.rng.Double() < this.deathRate) {
             Dispose();
             return;

@@ -17,20 +17,65 @@ def write_run_scripts(data_dir, experiment_name, run_output):
     run_output_batches = [run_output[i : i + 999] for i in range(0, len(run_output), 999)]
     for i, batch in enumerate(run_output_batches):
         with open(f"{data_dir}/{experiment_name}/run{i}.sh", "w", encoding="UTF-8") as f:
+            if run_output[0][0:4] == "java":
+                abs_path = os.path.dirname(os.path.realpath(__file__)).replace(" ", "\ ")
+                f.write(f"cd {abs_path}\n")
             for output_line in batch:
                 f.write(output_line)
-    print("Make sure you recompile SpatialEGT before running experiments:")
-    print('javac -d "build" -cp "lib/*" @sources.txt')
 
 
-def write_config(
-    config_path,
+def write_spatialegt_config(
+    data_dir,
+    exp_dir,
+    config_name,
+    seed,
+    payoff,
+    num_cells,
+    proportion_r,
+    write_freq=250,
+    x=125,
+    y=125,
+    ticks=250,
+    interaction_radius=2,
+    reproduction_radius=1,
+    turnover=0.009,
+    mutation_rate=0.0
+):
+    config = {
+        "writeModelFrequency": write_freq,
+        "x": x,
+        "y": y,
+        "interactionRadius": interaction_radius,
+        "reproductionRadius": reproduction_radius,
+        "numTicks": ticks,
+        "deathRate": turnover,
+        "mutationRate": mutation_rate,
+        "numCells": num_cells,
+        "proportionResistant": proportion_r,
+        "A": payoff[0],
+        "B": payoff[1],
+        "C": payoff[2],
+        "D": payoff[3]
+    }
+
+    path = f"{data_dir}/{exp_dir}/{config_name}"
+    if not os.path.exists(f"{path}/{seed}"):
+        os.makedirs(f"{path}/{seed}")
+    with open(f"{path}/{config_name}.json", "w", encoding="UTF-8") as f:
+        json.dump(config, f, indent=4)
+
+
+def write_spatiallv_config(
+    data_dir,
+    exp_dir,
+    config_name,
     seed,
     dimension,
     growth_model,
     num_types,
     interaction_matrix,
     intrinsic_growths,
+    carrying_capacities,
     initial_counts,
     death_rates,
     interaction_radius,
@@ -57,12 +102,14 @@ def write_config(
         for j in range(num_types):
             config[f"A_{i}{j}"] = interaction_matrix[i][j]
         config[f"r_{i}"] = intrinsic_growths[i]
+        config[f"k_{i}"] = carrying_capacities[i]
         config[f"d_{i}"] = death_rates[i]
         config[f"x_{i}"] = initial_counts[i]
 
-    if not os.path.exists(config_path):
-        os.makedirs(config_path)
-    with open(f"{config_path}/config.json", "w", encoding="UTF-8") as f:
+    path = f"{data_dir}/{exp_dir}/{config_name}"
+    if not os.path.exists(f"{path}/{seed}"):
+        os.makedirs(f"{path}/{seed}")
+    with open(f"{path}/{config_name}.json", "w", encoding="UTF-8") as f:
         json.dump(config, f, indent=4)
 
 

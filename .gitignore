@@ -1,4 +1,6 @@
+build*/
 data/
+lib/
 
 # Python
 __pycache__/

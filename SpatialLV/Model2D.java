@@ -1,5 +1,6 @@
 package SpatialLV;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import HAL.GridsAndAgents.AgentGrid2D;
@@ -15,10 +16,10 @@ public class Model2D extends AgentGrid2D<Cell2D> {
     int[] interactHood;
     double[][] interactionMatrix;
     double[] intrinsicGrowths;
-    double[] initialCounts;
+    int[] carryingCapacities;
     double[] deathRates;
 
-    public Model(int rng, String growthModel, int numTypes, int interactionRadius, int reproductionRadius, int gridLength, int gridHeight, double[][] interactionMatrix, double[] intrinsicGrowths, double[] initialCounts) {
+    public Model2D(Rand rng, String growthModel, int numTypes, int interactionRadius, int reproductionRadius, int gridLength, int gridHeight, double[][] interactionMatrix, double[] intrinsicGrowths, int[] carryingCapacities, double[] deathRates) {
         super(gridLength, gridHeight, Cell2D.class);
         this.rng = rng;
         this.growthModel = growthModel;
@@ -27,13 +28,11 @@ public class Model2D extends AgentGrid2D<Cell2D> {
         this.reproHood = Util.CircleHood(false, reproductionRadius);
         this.interactionMatrix = interactionMatrix;
         this.intrinsicGrowths = intrinsicGrowths;
-        this.initialCounts = initialCounts;
+        this.carryingCapacities = carryingCapacities;
         this.deathRates = deathRates;
     }
 
-    public void InitTumorRandom(int numCells, double proportionResistant) {
-        this.startingPop = numCells;
-
+    public void InitTumorRandom(int[] initialCounts) {
         // list of random positions on grid
         int gridSize = xDim * yDim;
         int[] startingPositions = new int[gridSize];
@@ -45,7 +44,7 @@ public class Model2D extends AgentGrid2D<Cell2D> {
         // create and place cells on random positions in grid
         int total = 0;
         for (int i = 0; i < this.numTypes; i++) {
-            for (int j = 0; j < this.initialCounts[i]; j++) {
+            for (int j = 0; j < initialCounts[i]; j++) {
                 NewAgentSQ(startingPositions[total]).Init(i);
                 total += 1;
             }
