@@ -1,56 +1,85 @@
 package SpatialEGT;
 
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
+
+import HAL.Rand;
+import HAL.Tools.FileIO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SpatialEGT {
     public static void main(String[] args) {
-        // read in arguments
-        String dataDir = null;
-        String expDir = null;
-        String expName = null;
-        String dimension = null;
-        String rep = null;
-        int visualizationFrequency = 0;
-        if (args.length == 5) {
-            dataDir = args[0];
-            expDir = args[1];
-            expName = args[2];
-            dimension = args[3];
-            rep = args[4];
-        }
-        else if (args.length == 6) {
-            dataDir = args[0];
-            expDir = args[1];
-            expName = args[2];
-            dimension = args[3];
-            rep = args[4];
-            visualizationFrequency = Integer.parseInt(args[5]);
-        }
-        else {
-            throw new java.lang.RuntimeException("Please provide the following arguments: data directory, experiment directory, experiment name, dimension, replicate/seed, and (optional) visualization frequency.");
-        }
-        String saveLoc = dataDir+"/"+expDir+"/"+expName+"/"+rep+"/"+dimension;
+        // read in path to config
+        String path = args[0];
+        String configFile = path+"/config.json";
 
         // read in json parameters
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> params;
         try{
-            params = mapper.readValue(Paths.get(dataDir+"/"+expDir+"/"+expName+"/"+expName+".json").toFile(), Map.class);
+            params = mapper.readValue(Paths.get(configFile).toFile(), Map.class);
         }
         catch (Exception e) {
             e.printStackTrace(System.out);
             return;
         }
 
-        // run models
-        if (dimension.equals("2D")) {
-            new SpatialEGT2D(saveLoc, params, Long.parseLong(rep), visualizationFrequency);
+        // turn parameters json into variables
+        int seed = (int) params.get("seed");
+        int dimension = (int) params.get("dimension");
+        int numTypes = (int) params.get("numTypes");
+        int interactionRadius = (int) params.get("interactionRadius");
+        int reproductionRadius = (int) params.get("reproductionRadius");
+        int gridLength = (int) params.get("gridLength");
+        int gridHeight = (int) params.get("gridHeight");
+        int writeFrequency = (int) params.get("writeFrequency");
+        int numTicks = (int) params.get("numTicks");
+
+        double[][] payoffMatrix = new double[numTypes+1][numTypes+1];
+        for (int i = 0; i < numTypes+1; i++) {
+            for (int j = 0; j < numTypes+1; j++) {
+                payoffMatrix[i][j] = (double) params.get("P_"+i+j);
+            }
+        }
+        double[] deathRates = new double[numTypes];
+        int[] initialCounts = new int[numTypes];
+        for (int i = 0; i < numTypes; i++) {
+            deathRates[i] = (double) params.get("d_"+i);
+            initialCounts[i] = (int) params.get("x_"+i);
+        }
+
+        // initialize output file
+        FileIO modelOut = new FileIO(path+"/coords.csv", "w");
+
+        // initialize model
+        Model2D model;
+        if (dimension == 2) {
+            modelOut.Write("time,type,x,y\n");
+            model = new Model2D(new Rand(seed), numTypes, interactionRadius, reproductionRadius, gridLength, gridHeight, payoffMatrix, deathRates);
         }
         else {
-            throw new java.lang.RuntimeException("Dimension not supported.");
+            throw new java.lang.RuntimeException(dimension+"D not supported.");
         }
+
+        // run model
+        model.InitTumorRandom(initialCounts);
+        for (int tick = 0; tick <= numTicks; tick++) {
+            if ((tick % writeFrequency == 0)) {
+                List<List<Integer>> coordLists = model.GetCoords();
+                for (int i = 0; i < coordLists.get(0).size(); i++) {
+                    modelOut.Write(tick+",");
+                    for (int j = 0; j < coordLists.size(); j++) {
+                        modelOut.Write(coordLists.get(j).get(i)+",");
+                    }
+                    modelOut.Write("\n");
+                }
+            }
+            model.ModelStep();
+        }
+
+        // close output file
+        modelOut.Close();
     }
 }

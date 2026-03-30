@@ -27,67 +27,46 @@ def write_run_scripts(data_dir, experiment_name, run_output):
 
 
 def write_config(
-    data_dir,
-    exp_dir,
-    config_name,
+    save_loc,
     seed,
-    payoff,
-    num_cells,
-    proportion_r,
-    write_freq=250,
-    x=125,
-    y=125,
-    ticks=250,
+    num_types,
+    payoff_matrix,
+    initial_counts,
+    death_rates,
+    grid_length=100,
+    grid_height=100,
     interaction_radius=2,
     reproduction_radius=1,
-    turnover=0.009,
-    mutation_rate=0.0
+    ticks=200,
+    write_freq=20,
+    dimension=2
 ):
-    """Write a config which parameterizes an EGT_HAL run
+    if len(payoff_matrix) != num_types + 1:
+        raise ValueError("Payoff matrix does not have a dimension for empty space.")
 
-    :param data_dir: the overall name of the directory storing the data
-    :type data_dir: str
-    :param exp_dir: the specific experiment name/directory
-    :type exp_dir: str
-    :param config_name: the name of the config file
-    :type config_name: str
-    :param seed: the seed for the EGT_HAL run
-    :type seed: int or str
-    :param payoff: the payoff matrix in format [a,b,c,d]
-    :type payoff: list[float]
-    :param num_cells: starting number of cells
-    :type num_cells: int
-    :param proportion_r: how many of the starting cells are resistant
-    :type proportion_r: float
-    :type write_freq: int, optional
-    :param ticks: how many time steps to run the model for, defaults to 250
-    :type ticks: int, optional
-    :param radius: the neighborhood size, defaults to 2
-    :type radius: int, optional
-    :param turnover: the probability each cell dies each time step, defaults to 0.009
-    :type turnover: float, optional
-    """
     config = {
-        "writeModelFrequency": write_freq,
-        "x": x,
-        "y": y,
+        "dimension": dimension,
+        "seed": seed,
+        "numTicks": ticks,
+        "writeFrequency": write_freq,
+        "gridLength": grid_length,
+        "gridHeight": grid_height,
+        "numTypes": num_types,
         "interactionRadius": interaction_radius,
         "reproductionRadius": reproduction_radius,
-        "numTicks": ticks,
-        "deathRate": turnover,
-        "mutationRate": mutation_rate,
-        "numCells": num_cells,
-        "proportionResistant": proportion_r,
-        "A": payoff[0],
-        "B": payoff[1],
-        "C": payoff[2],
-        "D": payoff[3]
     }
 
-    path = f"{data_dir}/{exp_dir}/{config_name}"
-    if not os.path.exists(f"{path}/{seed}"):
-        os.makedirs(f"{path}/{seed}")
-    with open(f"{path}/{config_name}.json", "w", encoding="UTF-8") as f:
+    for i in range(num_types + 1):
+        for j in range(num_types + 1):
+            config[f"P_{i}{j}"] = float(payoff_matrix[i][j])
+
+    for i in range(num_types):
+        config[f"d_{i}"] = float(death_rates[i])
+        config[f"x_{i}"] = int(initial_counts[i])
+
+    if not os.path.exists(save_loc):
+        os.makedirs(save_loc)
+    with open(f"{save_loc}/config.json", "w", encoding="UTF-8") as f:
         json.dump(config, f, indent=4)
 
 
@@ -110,6 +89,7 @@ def latin_hybercube_sample(num_samples, param_names, lower_bounds, upper_bounds,
     :rtype: list[dict]
     """
     from scipy.stats import qmc
+
     sampler = qmc.LatinHypercube(d=len(lower_bounds), seed=seed)
     unscaled_sample = sampler.random(n=num_samples)
     sample = qmc.scale(unscaled_sample, lower_bounds, upper_bounds).tolist()

@@ -1,5 +1,6 @@
 package SpatialEGT;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import HAL.GridsAndAgents.AgentGrid2D;
@@ -9,27 +10,24 @@ import HAL.Util;
 
 public class Model2D extends AgentGrid2D<Cell2D> {
     Rand rng;
-    double deathRate;
-    double mutationRate;
-    double[][] payoff;
-    int[] divHood;
-    int[] gameHood;
-    int startingPop;
+    int numTypes;
+    int[] reproHood;
+    int[] interactHood;
+    double[][] payoffMatrix;
+    double[] deathRates;
 
-    public Model2D(int x, int y, Rand rng, int gameHoodRadius, int divHoodRadius, double deathRate, double mutationRate, double[][] payoff) {
-        super(x, y, Cell2D.class);
+    public Model2D(Rand rng, int numTypes, int interactionRadius, int reproductionRadius, int gridLength, int gridHeight, double[][] payoffMatrix, double[] deathRates) {
+        super(gridLength, gridHeight, Cell2D.class);
         this.rng = rng;
-        this.deathRate = deathRate;
-        this.mutationRate = mutationRate;
-        this.payoff = payoff;
-        this.gameHood = Util.CircleHood(false, gameHoodRadius);
-        this.divHood = Util.CircleHood(false, divHoodRadius);
+        this.numTypes = numTypes;
+        this.interactHood = Util.CircleHood(false, interactionRadius);
+        this.reproHood = Util.CircleHood(false, reproductionRadius);
+        this.payoffMatrix = payoffMatrix;
+        this.deathRates = deathRates;
     }
 
-    public void InitTumorRandom(int numCells, double proportionResistant) {
-        this.startingPop = numCells;
-
-        //list of random positions on grid
+    public void InitTumorRandom(int[] initialCounts) {
+        // list of random positions on grid
         int gridSize = xDim * yDim;
         int[] startingPositions = new int[gridSize];
         for (int i = 0; i < gridSize; i++) {
@@ -37,14 +35,12 @@ public class Model2D extends AgentGrid2D<Cell2D> {
         }
         rng.Shuffle(startingPositions);
 
-        //create and place cells on random positions in grid
-        int numResistant = (int)(numCells * proportionResistant);
-        for (int i = 0; i < numCells; i++) {
-            if (i < numResistant) {
-                NewAgentSQ(startingPositions[i]).Init(1);
-            }
-            else {
-                NewAgentSQ(startingPositions[i]).Init(0);
+        // create and place cells on random positions in grid
+        int total = 0;
+        for (int i = 0; i < this.numTypes; i++) {
+            for (int j = 0; j < initialCounts[i]; j++) {
+                NewAgentSQ(startingPositions[total]).Init(i);
+                total += 1;
             }
         }
     }
@@ -56,16 +52,19 @@ public class Model2D extends AgentGrid2D<Cell2D> {
         }
     }
 
-    public void DrawModel(GridWindow win, int iModel) {
-        for (int x = 0; x < xDim; x++) {
-            for (int y = 0; y < yDim; y++) {
-                int color = Util.BLACK;
-                Cell2D cell = GetAgent(x, y);
-                if (cell != null) {
-                    color = cell.color;
-                }
-                win.SetPix(x+iModel*xDim, y, color);
-            }
+    public List<List<Integer>> GetCoords() {
+        List<Integer> cellTypes = new ArrayList<Integer>();
+        List<Integer> xCoords = new ArrayList<Integer>();
+        List<Integer> yCoords = new ArrayList<Integer>();
+        for (Cell2D cell: this) {
+            cellTypes.add(cell.type);
+            xCoords.add(cell.Xsq());
+            yCoords.add(cell.Ysq());
         }
+        List<List<Integer>> returnList = new ArrayList<List<Integer>>();
+        returnList.add(cellTypes);
+        returnList.add(xCoords);
+        returnList.add(yCoords);
+        return returnList;
     }
 }

@@ -5,54 +5,37 @@ import HAL.Util;
 
 public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
     int type;
-    int color;
-    double deathRate, mutationRate;
+    double deathRate;
 
     public void Init(int type) {
         this.type = type;
-        this.deathRate = G.deathRate;
-        this.mutationRate = G.mutationRate;
-        SetColor(this.type);
-    }
-
-    private void SetColor(int type) {
-        if (type == 0) {
-            this.color = Util.RGB256(76, 149, 108);
-        }
-        else {
-            this.color = Util.RGB256(239, 124, 142);
-        }
+        this.deathRate = G.deathRates[type];
     }
 
     public double GetDivRate() {
         double total_payoff = 0;
-        int neighbors = MapOccupiedHood(G.gameHood);
-        if (neighbors == 0) {
-            return 0.001;
-        }
+        int neighbors = MapOccupiedHood(G.interactHood);
         for (int i = 0; i < neighbors; i++) {
-            Cell2D neighborCell = G.GetAgent(G.gameHood[i]);
-            total_payoff += G.payoff[this.type][neighborCell.type];
+            Cell2D neighborCell = G.GetAgent(G.interactHood[i]);
+            total_payoff += G.payoffMatrix[this.type][neighborCell.type];
         }
-        return total_payoff/neighbors;
+        int empty = MapEmptyHood(G.interactHood);
+        total_payoff += empty * G.payoffMatrix[this.type][G.numTypes];
+        return total_payoff / (neighbors + empty);
     }
 
     public void CellStep() {
-        //mutation
-        if (G.rng.Double() < G.mutationRate) {
-            this.type = 1 - this.type;
-            SetColor(this.type);
-        }
-        //divison + drug effects
+        // divison
         double divRate = this.GetDivRate();
         if (G.rng.Double() < divRate) {
-            int options = MapEmptyHood(G.divHood);
+            int options = MapEmptyHood(G.reproHood);
             if (options > 0) {
-                G.NewAgentSQ(G.divHood[G.rng.Int(options)]).Init(this.type);
+                G.NewAgentSQ(G.reproHood[G.rng.Int(options)]).Init(this.type);
             }
         }
-        //natural death
-        if (G.rng.Double() < G.deathRate) {
+
+        // death
+        if (G.rng.Double() < this.deathRate) {
             Dispose();
             return;
         }
