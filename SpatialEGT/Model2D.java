@@ -13,17 +13,17 @@ public class Model2D extends AgentGrid2D<Cell2D> {
     int numTypes;
     int[] reproHood;
     int[] interactHood;
-    double[][] payoffMatrix;
-    double[] deathRates;
+    double[][] interactionMatrix;
+    double[] intrinsicGrowths;
 
-    public Model2D(Rand rng, int numTypes, int interactionRadius, int reproductionRadius, int gridLength, int gridHeight, double[][] payoffMatrix, double[] deathRates) {
+    public Model2D(Rand rng, int numTypes, int interactionRadius, int reproductionRadius, int gridLength, int gridHeight, double[][] interactionMatrix, double[] intrinsicGrowths) {
         super(gridLength, gridHeight, Cell2D.class);
         this.rng = rng;
         this.numTypes = numTypes;
         this.interactHood = Util.CircleHood(false, interactionRadius);
         this.reproHood = Util.CircleHood(false, reproductionRadius);
-        this.payoffMatrix = payoffMatrix;
-        this.deathRates = deathRates;
+        this.interactionMatrix = interactionMatrix;
+        this.intrinsicGrowths = intrinsicGrowths;
     }
 
     public void InitTumorRandom(int[] initialCounts) {
@@ -56,15 +56,18 @@ public class Model2D extends AgentGrid2D<Cell2D> {
         List<Integer> cellTypes = new ArrayList<Integer>();
         List<Integer> xCoords = new ArrayList<Integer>();
         List<Integer> yCoords = new ArrayList<Integer>();
+        List<Integer> growthFactors = new ArrayList<Integer>();
         for (Cell2D cell: this) {
             cellTypes.add(cell.type);
             xCoords.add(cell.Xsq());
             yCoords.add(cell.Ysq());
+            growthFactors.add((int)(100*cell.growthFactor));
         }
         List<List<Integer>> returnList = new ArrayList<List<Integer>>();
         returnList.add(cellTypes);
         returnList.add(xCoords);
         returnList.add(yCoords);
+        returnList.add(growthFactors);
         return returnList;
     }
 }

@@ -13,14 +13,14 @@ def main():
     parser.add_argument("-dim", "--dimension", type=int, default=2)
     parser.add_argument("-types", "--num_types", type=int, default=2)
     parser.add_argument(
-        "-P",
-        "--payoff_matrix",
+        "-A",
+        "--interaction_matrix",
         nargs="+",
         type=float,
-        default=[0.1, 0.3, 0.2, 0.6, 0.4, 0.1, 0, 0, 0],
+        default=[-0.1, 0.3, 0.2, -0.1],
     )
+    parser.add_argument("-r", "--intrinsic_growths", nargs="+", type=float, default=[0.1, 0.1])
     parser.add_argument("-x", "--initial_counts", nargs="+", type=float, default=[100, 100])
-    parser.add_argument("-d", "--death_rates", nargs="+", type=float, default=[0.001, 0.001])
     parser.add_argument("-gl", "--grid_length", type=int, default=100)
     parser.add_argument("-gh", "--grid_height", type=int, default=100)
     parser.add_argument("-m", "--interaction_radius", type=int, default=2)
@@ -29,8 +29,8 @@ def main():
     parser.add_argument("-freq", "--write_freq", type=int, default=10)
     args = parser.parse_args()
 
-    payoff_matrix = (
-        np.array(args.payoff_matrix).reshape([args.num_types + 1, args.num_types + 1]).tolist()
+    interaction_matrix = (
+        np.array(args.interaction_matrix).reshape([args.num_types, args.num_types]).tolist()
     )
 
     write_config(
@@ -38,9 +38,9 @@ def main():
         seed=args.seed,
         dimension=args.dimension,
         num_types=args.num_types,
-        payoff_matrix=payoff_matrix,
+        interaction_matrix=interaction_matrix,
+        intrinsic_growths=args.intrinsic_growths,
         initial_counts=args.initial_counts,
-        death_rates=args.death_rates,
         interaction_radius=args.interaction_radius,
         reproduction_radius=args.reproduction_radius,
         grid_length=args.grid_length,

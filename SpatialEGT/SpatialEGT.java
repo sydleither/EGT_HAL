@@ -37,16 +37,14 @@ public class SpatialEGT {
         int writeFrequency = (int) params.get("writeFrequency");
         int numTicks = (int) params.get("numTicks");
 
-        double[][] payoffMatrix = new double[numTypes+1][numTypes+1];
-        for (int i = 0; i < numTypes+1; i++) {
-            for (int j = 0; j < numTypes+1; j++) {
-                payoffMatrix[i][j] = (double) params.get("P_"+i+j);
-            }
-        }
-        double[] deathRates = new double[numTypes];
+        double[][] interactionMatrix = new double[numTypes][numTypes];
         int[] initialCounts = new int[numTypes];
+        double[] intrinsicGrowths = new double[numTypes];
         for (int i = 0; i < numTypes; i++) {
-            deathRates[i] = (double) params.get("d_"+i);
+            for (int j = 0; j < numTypes; j++) {
+                interactionMatrix[i][j] = (double) params.get("A_"+i+j);
+            }
+            intrinsicGrowths[i] = (double) params.get("r_"+i);
             initialCounts[i] = (int) params.get("x_"+i);
         }
 
@@ -56,8 +54,8 @@ public class SpatialEGT {
         // initialize model
         Model2D model;
         if (dimension == 2) {
-            modelOut.Write("time,type,x,y\n");
-            model = new Model2D(new Rand(seed), numTypes, interactionRadius, reproductionRadius, gridLength, gridHeight, payoffMatrix, deathRates);
+            modelOut.Write("time,type,x,y,growth_factor\n");
+            model = new Model2D(new Rand(seed), numTypes, interactionRadius, reproductionRadius, gridLength, gridHeight, interactionMatrix, intrinsicGrowths);
         }
         else {
             throw new java.lang.RuntimeException(dimension+"D not supported.");

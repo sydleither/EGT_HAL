@@ -30,9 +30,9 @@ def write_config(
     save_loc,
     seed,
     num_types,
-    payoff_matrix,
+    interaction_matrix,
+    intrinsic_growths,
     initial_counts,
-    death_rates,
     grid_length=100,
     grid_height=100,
     interaction_radius=2,
@@ -41,9 +41,6 @@ def write_config(
     write_freq=20,
     dimension=2
 ):
-    if len(payoff_matrix) != num_types + 1:
-        raise ValueError("Payoff matrix does not have a dimension for empty space.")
-
     config = {
         "dimension": dimension,
         "seed": seed,
@@ -56,12 +53,10 @@ def write_config(
         "reproductionRadius": reproduction_radius,
     }
 
-    for i in range(num_types + 1):
-        for j in range(num_types + 1):
-            config[f"P_{i}{j}"] = float(payoff_matrix[i][j])
-
     for i in range(num_types):
-        config[f"d_{i}"] = float(death_rates[i])
+        for j in range(num_types):
+            config[f"A_{i}{j}"] = float(interaction_matrix[i][j])
+        config[f"r_{i}"] = float(intrinsic_growths[i])
         config[f"x_{i}"] = int(initial_counts[i])
 
     if not os.path.exists(save_loc):

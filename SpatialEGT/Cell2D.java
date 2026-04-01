@@ -1,43 +1,64 @@
 package SpatialEGT;
 
+import java.lang.Math;
+
 import HAL.GridsAndAgents.AgentSQ2Dunstackable;
 import HAL.Util;
 
 public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
     int type;
-    double deathRate;
+    double intrinsicGrowth;
+    double growthFactor;
 
     public void Init(int type) {
         this.type = type;
-        this.deathRate = G.deathRates[type];
+        this.intrinsicGrowth = G.intrinsicGrowths[type];
+        this.growthFactor = -1;
     }
 
-    public double GetDivRate() {
-        double total_payoff = 0;
+    public double GetGrowthFactor() {
+        // initialize neighbor counts
+        int[] neighborCounts = new int[G.numTypes];
+        for (int i = 0; i < G.numTypes; i++) {
+            neighborCounts[i] = 0;
+        }
+
+        // fill in neighbor counts
         int neighbors = MapOccupiedHood(G.interactHood);
         for (int i = 0; i < neighbors; i++) {
             Cell2D neighborCell = G.GetAgent(G.interactHood[i]);
-            total_payoff += G.payoffMatrix[this.type][neighborCell.type];
+            neighborCounts[neighborCell.type] += 1;
         }
-        int empty = MapEmptyHood(G.interactHood);
-        total_payoff += empty * G.payoffMatrix[this.type][G.numTypes];
-        return total_payoff / (neighbors + empty);
+
+        // calculate growth factor
+        double f = this.intrinsicGrowth;
+        for (int i = 0; i < G.numTypes; i++) {
+            f += G.interactionMatrix[this.type][i]*neighborCounts[i];
+        }
+
+        // convert growth factor into probability of death/reproduction
+        return f / (neighborCounts[this.type] + 1);
     }
 
     public void CellStep() {
-        // divison
-        double divRate = this.GetDivRate();
-        if (G.rng.Double() < divRate) {
-            int options = MapEmptyHood(G.reproHood);
-            if (options > 0) {
-                G.NewAgentSQ(G.reproHood[G.rng.Int(options)]).Init(this.type);
-            }
-        }
+        double growthFactor = GetGrowthFactor();
+        this.growthFactor = growthFactor;
 
         // death
-        if (G.rng.Double() < this.deathRate) {
-            Dispose();
-            return;
+        if (growthFactor < 0) {
+            if (G.rng.Double() < Math.abs(growthFactor)) {
+                Dispose();
+                return;
+            }
+        }
+        // reproduction
+        else {
+            if (G.rng.Double() < growthFactor) {
+                int options = MapEmptyHood(G.reproHood);
+                if (options > 0) {
+                    G.NewAgentSQ(G.reproHood[G.rng.Int(options)]).Init(this.type);
+                }
+            }
         }
     }
 }
