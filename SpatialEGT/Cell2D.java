@@ -19,12 +19,9 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
             Cell2D neighborCell = G.GetAgent(G.interactHood[i]);
             total_payoff += G.payoffMatrix[this.type][neighborCell.type];
         }
-        if (G.payoffMatrix[this.type][G.numTypes] != 0.0) {
-            int empty = MapEmptyHood(G.interactHood);
-            total_payoff += empty * G.payoffMatrix[this.type][G.numTypes];
-            neighbors += empty;
-        }
-        return total_payoff / neighbors;
+        int empty = MapEmptyHood(G.interactHood);
+        total_payoff += empty * G.payoffMatrix[this.type][G.numTypes];
+        return total_payoff / (neighbors + empty);
     }
 
     public void CellStep() {
