@@ -65,7 +65,7 @@ def write_config(
         json.dump(config, f, indent=4)
 
 
-def latin_hybercube_sample(num_samples, param_names, lower_bounds, upper_bounds, ints, rnd, seed):
+def latin_hybercube_sample(num_samples, param_names, lower_bounds, upper_bounds, ints, seed):
     """Latin Hypercube Sample
 
     :param num_samples: how many samples to take from parameter space
@@ -89,7 +89,7 @@ def latin_hybercube_sample(num_samples, param_names, lower_bounds, upper_bounds,
     unscaled_sample = sampler.random(n=num_samples)
     sample = qmc.scale(unscaled_sample, lower_bounds, upper_bounds).tolist()
     sampled_params = [
-        {param_names[i]: round(s[i]) if ints[i] else round(s[i], rnd) for i in range(len(s))}
+        {param_names[i]: round(s[i]) if ints[i] else s[i] for i in range(len(s))}
         for s in sample
     ]
     return sampled_params
