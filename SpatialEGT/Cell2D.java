@@ -32,12 +32,12 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
 
         // calculate growth factor
         double f = this.intrinsicGrowth;
+        int maxNeighbors = G.interactHood.length;
         for (int i = 0; i < G.numTypes; i++) {
-            f += G.interactionMatrix[this.type][i]*neighborCounts[i];
+            f += G.interactionMatrix[this.type][i] * (neighborCounts[i] / (double) maxNeighbors);
         }
 
-        // convert growth factor into probability of death/reproduction
-        return f / (neighborCounts[this.type] + 1);
+        return f;
     }
 
     public void CellStep() {
