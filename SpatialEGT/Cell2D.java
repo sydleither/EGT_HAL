@@ -51,12 +51,14 @@ public class Cell2D extends AgentSQ2Dunstackable<Model2D> {
                 return;
             }
         }
+
         // reproduction
         else {
             if (G.rng.Double() < growthFactor) {
-                int options = MapEmptyHood(G.reproHood);
-                if (options > 0) {
-                    G.NewAgentSQ(G.reproHood[G.rng.Int(options)]).Init(this.type);
+                int options = MapHood(G.reproHood);
+                int index = G.reproHood[G.rng.Int(options)];
+                if (G.GetAgent(index) == null) {
+                    G.NewAgentSQ(index).Init(this.type);
                 }
             }
         }
